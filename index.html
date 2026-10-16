@@ -57,6 +57,13 @@ h1::after{content:'';position:absolute;left:0;bottom:0;width:64px;height:3px;bor
 .dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--ter);box-shadow:0 0 0 2px var(--panel)}
 #madd{background:var(--sec);border-color:var(--sec);color:#fff;font-weight:600}
 #side h2 .ttl{display:flex;align-items:center;gap:6px}
+#side h2{display:flex;align-items:center;gap:6px;white-space:nowrap;margin:0 0 6px}
+#side h2 button{font:16px/1 system-ui;padding:2px 8px}
+.sub{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.acts{display:flex;gap:6px}
+.ib{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#msg{flex:1 1 100%}
 main.nolist{grid-template-columns:1fr}main.nolist #side{display:none}
 .tgbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .tg{display:flex;align-items:center;gap:4px;padding:5px 10px}.tg small{color:var(--mute);font-size:12px}
@@ -92,7 +99,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 <div class="tgbar">
   <button class="tg ic" id="tgS" aria-expanded="true" aria-controls="side" aria-label="Mostrar u ocultar la lista de carreras" title="Lista de carreras"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
   <button class="tg ic" id="tgF" aria-expanded="false" aria-controls="filters" aria-label="Filtros" title="Filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg><i class="dot" id="fdot" hidden></i></button>
-  <button class="tg ic" id="tgD" aria-expanded="false" aria-controls="datapanel" aria-label="Calendario y datos" title="Calendario y datos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h8"/></svg></button>
+  <button class="tg ic" id="tgD" aria-expanded="false" aria-controls="datapanel" aria-label="Datos" title="Datos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 12h16M10 7.5h4M10 16.5h4"/></svg></button>
   <button class="tg ic" id="tgM" aria-expanded="false" aria-controls="custompanel" aria-label="Crear bloque personalizado" title="Bloque personalizado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="3"/><path d="M12 9.5v5M9.5 12h5"/></svg></button>
 </div>
 <div class="bar" id="filters" hidden>
@@ -114,7 +121,8 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 </div>
 
 <main>
-  <section class="panel" id="side"><h2 class="row"><span class="ttl"><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles <small id="actday" class="status"></small></span><span><button id="colAll">Contraer todo</button><button id="expAll">Expandir todo</button></span></h2><div id="list"></div></section>
+  <section class="panel" id="side"><h2><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles</h2>
+    <div class="sub"><small id="actday" class="status"></small><span class="acts"><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
   <section class="panel" id="tl"><h2>Tu plan · 7 días</h2>
     
     <div id="scroll"><div id="days"></div></div>
@@ -341,7 +349,7 @@ function render(){
   if(!$('day').value) return;
   const di=dayInfo(active),k=di.key;
   renderTabs();
-  $('actday').textContent='· '+di.label;
+  $('actday').textContent=di.label;
   const fs=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent,$('q').value.trim()&&'«'+$('q').value.trim()+'»'].filter(Boolean).join(' · ');
   $('tgF').title='Filtros · '+fs;$('fdot').hidden=!($('lic').value||$('cat').value||$('q').value.trim());
   const q=$('q').value.trim().toLowerCase(), f=tmin($('from').value||'00:00'), to=tmin($('to').value||'24:00');
