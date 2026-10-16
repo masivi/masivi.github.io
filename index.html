@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Planificador de carreras iRacing · Season 4 2026</title>
 <style>
-:root{--bg:#e9edf2;--panel:#fff;--ink:#14202e;--mute:#5d6b7b;--line:#cfd7e1;--accent:#0b5fd8;--bad:#d11f3a;
---M:#6a5acd;--R:#d9363e;--D:#e0791a;--C:#e6c619;--B:#2f9e55;--A:#2a6fdb}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1620;--panel:#182331;--ink:#e6edf5;--mute:#92a1b3;--line:#2a3a4d;--accent:#5b9bff}}
+:root{--bg:#e9edf2;--panel:#fff;--ink:#14202e;--mute:#5d6b7b;--line:#cfd7e1;--accent:#9819FF;--accent-t:#9819FF;--sec:#9819FF;--ter:#79FF4A;--bad:#d11f3a;
+--M:#9819FF;--R:#d9363e;--D:#e0791a;--C:#e6c619;--B:#2f9e55;--A:#2a6fdb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1620;--panel:#182331;--ink:#e6edf5;--mute:#92a1b3;--line:#2a3a4d;--accent:#9819FF;--accent-t:#c48bff}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;padding:16px}
 h1,h2{margin:0;font-family:'Arial Narrow','Roboto Condensed',system-ui,sans-serif;letter-spacing:.01em}
@@ -15,8 +15,9 @@ h1{font-size:28px}h2{font-size:19px;margin-bottom:8px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:10px 0 14px}
 label{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:3px}
 input,select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
-button{cursor:pointer}:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{cursor:pointer}:focus-visible{outline:2px solid var(--sec);outline-offset:2px}
 .status{font-size:13px;color:var(--mute)}
+.status b{color:var(--ink)}
 main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px;align-items:start}
 @media(max-width:860px){main{grid-template-columns:1fr}#tl{order:-1}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
@@ -34,12 +35,12 @@ main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px;align-i
 #axis{position:relative;min-height:200px}
 .hr{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);font-size:12px;color:var(--mute);padding:3px 0 0 4px}
 .hr.half{border-left-style:dashed;opacity:.5}
-.now{position:absolute;top:0;bottom:0;width:2px;background:var(--bad)}
+.now{position:absolute;top:0;bottom:0;width:2px;background:var(--ter);box-shadow:0 0 6px var(--ter)}
 .blk{position:absolute;height:50px;border-radius:5px;color:#fff;padding:4px 7px;overflow:hidden;cursor:pointer;border:0;text-align:left;font:600 13px/1.15 system-ui}
 .blk small{display:block;font-weight:400;opacity:.92;white-space:nowrap}
 .blk.C{color:#1c1c1c}
 .blk.bad{outline:3px solid var(--bad);outline-offset:1px;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.28) 0 6px,transparent 6px 12px)}
-.ghost{position:absolute;height:50px;border:2px dashed var(--accent);border-radius:5px;background:rgba(91,155,255,.15);pointer-events:none}
+.ghost{position:absolute;height:50px;border:2px dashed var(--accent);border-radius:5px;background:rgba(152,25,255,.16);pointer-events:none}
 #sum{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:14px}
 .warn{color:var(--bad);font-weight:600}.empty{color:var(--mute);padding:18px 4px}
 h2.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -47,12 +48,22 @@ h2.row span{display:flex;gap:6px}h2.row button{font:12px system-ui;padding:3px 8
 .rh{display:flex;align-items:center;gap:6px;width:100%;text-align:left;background:none;border:0;padding:0;font:600 15px system-ui;cursor:pointer;color:var(--ink)}
 .rh{user-select:none}.grip{color:var(--mute);cursor:grab;touch-action:none;font-size:14px;padding:0 1px}
  [hidden]{display:none!important}
+button:hover{border-color:var(--sec)}
+h1{position:relative;padding-bottom:8px}
+h1::after{content:'';position:absolute;left:0;bottom:0;width:64px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--sec) 0 62%,var(--ter) 62%)}
+.tg.ic{position:relative;width:38px;height:38px;padding:0;justify-content:center}
+.tg svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tg[aria-expanded=true]{border-color:var(--sec);color:var(--accent-t);box-shadow:inset 0 -3px 0 var(--ter)}
+.dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--ter);box-shadow:0 0 0 2px var(--panel)}
+#madd{background:var(--sec);border-color:var(--sec);color:#fff;font-weight:600}
+#side h2 .ttl{display:flex;align-items:center;gap:6px}
+main.nolist{grid-template-columns:1fr}main.nolist #side{display:none}
 .tgbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .tg{display:flex;align-items:center;gap:4px;padding:5px 10px}.tg small{color:var(--mute);font-size:12px}
 .tg[aria-expanded=true] .chev{transform:rotate(90deg)}
 .chev{display:inline-block;width:14px;font-size:18px;line-height:1;color:var(--mute);transition:transform .15s}
 .rh[aria-expanded=true] .chev{transform:rotate(90deg)}
-.cnt{font-weight:400;font-size:12px;color:var(--accent);margin-left:auto}
+.cnt{font-size:12px;font-weight:600;color:#0f1620;background:var(--ter);border-radius:9px;padding:0 8px;margin-left:auto}.cnt.amb{background:none;padding:0;font-weight:600}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
 .tabs button{padding:3px 7px;font-size:12px;line-height:1.2;text-align:center}
 .tabs button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -79,8 +90,10 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 <body>
 <h1>Tarde de carreras</h1>
 <div class="tgbar">
-  <button class="tg" id="tgF" aria-expanded="false" aria-controls="filters"><span class="chev">›</span>Filtros <small id="fsum"></small></button>
-  <button class="tg" id="tgD" aria-expanded="false" aria-controls="datapanel"><span class="chev">›</span>Calendario y datos</button>
+  <button class="tg ic" id="tgS" aria-expanded="true" aria-controls="side" aria-label="Mostrar u ocultar la lista de carreras" title="Lista de carreras"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+  <button class="tg ic" id="tgF" aria-expanded="false" aria-controls="filters" aria-label="Filtros" title="Filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg><i class="dot" id="fdot" hidden></i></button>
+  <button class="tg ic" id="tgD" aria-expanded="false" aria-controls="datapanel" aria-label="Calendario y datos" title="Calendario y datos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h8"/></svg></button>
+  <button class="tg ic" id="tgM" aria-expanded="false" aria-controls="custompanel" aria-label="Crear bloque personalizado" title="Bloque personalizado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="3"/><path d="M12 9.5v5M9.5 12h5"/></svg></button>
 </div>
 <div class="bar" id="filters" hidden>
   <label>Primer día<input type="date" id="day"></label>
@@ -96,10 +109,14 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <div class="bar" style="margin:6px 0 14px"><button id="exp" title="Descarga tu plan y tus ajustes como archivo">Exportar plan</button><button id="imp" title="Carga un plan exportado desde otro navegador">Importar plan…</button><button id="clear">Vaciar plan</button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
 </div>
 
+<div id="custompanel" hidden>
+  <div class="bar" id="mf"><label>Día<select id="mday"></select></label><label>Inicio<select id="mfrom"></select></label><label>Fin<select id="mto"></select></label><label style="flex:1;min-width:150px">Descripción<input type="text" id="mdesc" placeholder="Ej. Cena, entrenamiento…"></label><button id="madd">Añadir bloque</button></div>
+</div>
+
 <main>
-  <section class="panel"><h2 class="row"><span class="ttl">Carreras disponibles <small id="actday" class="status"></small></span><span><button id="colAll">Contraer todo</button><button id="expAll">Expandir todo</button></span></h2><div id="list"></div></section>
+  <section class="panel" id="side"><h2 class="row"><span class="ttl"><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles <small id="actday" class="status"></small></span><span><button id="colAll">Contraer todo</button><button id="expAll">Expandir todo</button></span></h2><div id="list"></div></section>
   <section class="panel" id="tl"><h2>Tu plan · 7 días</h2>
-    <div class="bar" id="mf"><label>Bloque manual · día<select id="mday"></select></label><label>Inicio<select id="mfrom"></select></label><label>Fin<select id="mto"></select></label><label style="flex:1;min-width:150px">Descripción<input type="text" id="mdesc" placeholder="Ej. Cena, entrenamiento…"></label><button id="madd">Añadir bloque</button></div>
+    
     <div id="scroll"><div id="days"></div></div>
     <div id="sum"></div>
     <details><summary>Notas sobre los datos</summary>
@@ -271,7 +288,7 @@ const dayKey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const col=l=>'var(--'+l+')';
 const ORD={R:0,D:1,C:2,B:3,A:4};
-const ui={f:false,d:false};
+const ui={f:false,d:false,m:false,s:true};
 let plan=new Map(), preview=null, expanded=new Set(), shown=[];
 
 function zoned(y,mo,d,h,mi,tz){
@@ -325,7 +342,8 @@ function render(){
   const di=dayInfo(active),k=di.key;
   renderTabs();
   $('actday').textContent='· '+di.label;
-  $('fsum').textContent=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent,$('q').value.trim()&&'«'+$('q').value.trim()+'»'].filter(Boolean).join(' · ');
+  const fs=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent,$('q').value.trim()&&'«'+$('q').value.trim()+'»'].filter(Boolean).join(' · ');
+  $('tgF').title='Filtros · '+fs;$('fdot').hidden=!($('lic').value||$('cat').value||$('q').value.trim());
   const q=$('q').value.trim().toLowerCase(), f=tmin($('from').value||'00:00'), to=tmin($('to').value||'24:00');
   let races=racesForDay(k).filter(r=>(!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(!q||(r.name+' '+r.track).toLowerCase().includes(q)));
   races.forEach(r=>r.vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to));
@@ -506,7 +524,11 @@ function refreshInfo(){
 function applyUi(){
   $('tgF').setAttribute('aria-expanded',ui.f);$('filters').hidden=!ui.f;
   $('tgD').setAttribute('aria-expanded',ui.d);$('datapanel').hidden=!ui.d;
+  $('tgM').setAttribute('aria-expanded',ui.m);$('custompanel').hidden=!ui.m;
+  $('tgS').setAttribute('aria-expanded',ui.s);document.querySelector('main').classList.toggle('nolist',!ui.s);
 }
+const flip=k=>()=>{ui[k]=!ui[k];applyUi();saveState();if(k==='s')drawTimeline()};
+$('tgM').onclick=flip('m');$('tgS').onclick=flip('s');$('hideSide').onclick=flip('s');
 $('tgF').onclick=()=>{ui.f=!ui.f;applyUi();saveState()};
 $('tgD').onclick=()=>{ui.d=!ui.d;applyUi();saveState()};
 new MutationObserver(()=>{const m=$('msg');if(m.classList.contains('msgerr')&&m.textContent&&!ui.d&&!DATA.length){ui.d=true;applyUi()}}).observe($('msg'),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
@@ -523,7 +545,7 @@ function reconcilePlan(){
 const USER='local',SKEY=`iracing-planner/${USER}/state`;
 let storageOK=true;
 function stateObj(){
-  return {v:1,start:$('day').value,active,from:$('from').value,to:$('to').value,lic:$('lic').value,cat:$('cat').value,q:$('q').value,gap:$('gap').value,mseq,expanded:[...expanded],ui:{f:ui.f,d:ui.d},
+  return {v:1,start:$('day').value,active,from:$('from').value,to:$('to').value,lic:$('lic').value,cat:$('cat').value,q:$('q').value,gap:$('gap').value,mseq,expanded:[...expanded],ui:{f:ui.f,d:ui.d,m:ui.m,s:ui.s},
     plan:[...plan.entries()].map(([k,v])=>({k,t:v.t.getTime(),r:{uid:v.r.uid,name:v.r.name,lic:v.r.lic,cat:v.r.cat,track:v.r.track,dur:v.r.dur,est:v.r.est,manual:!!v.r.manual}}))};
 }
 function saveState(){
@@ -535,7 +557,7 @@ function applyState(s){
   put('day',s.start);put('from',s.from);put('to',s.to);put('lic',s.lic);put('cat',s.cat);put('q',s.q);put('gap',s.gap);
   active=Math.min(6,Math.max(0,+s.active||0));mseq=+s.mseq||0;
   expanded=new Set(s.expanded||[]);
-  if(s.ui){ui.f=!!s.ui.f;ui.d=!!s.ui.d}
+  if(s.ui){ui.f=!!s.ui.f;ui.d=!!s.ui.d;ui.m=!!s.ui.m;ui.s=s.ui.s!==false}
   plan.clear();(s.plan||[]).forEach(o=>plan.set(o.k,{r:o.r,t:new Date(o.t)}));
 }
 function loadState(){
