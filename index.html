@@ -9,7 +9,8 @@
 --M:#9819FF;--R:#d9363e;--D:#e0791a;--C:#e6c619;--B:#2f9e55;--A:#2a6fdb}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1620;--panel:#182331;--ink:#e6edf5;--mute:#92a1b3;--line:#2a3a4d;--accent:#9819FF;--accent-t:#c48bff}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;padding:16px}
+html{scrollbar-gutter:stable}
+body{overflow-x:hidden;margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;padding:16px}
 h1,h2{margin:0;font-family:'Arial Narrow','Roboto Condensed',system-ui,sans-serif;letter-spacing:.01em}
 h1{font-size:28px}h2{font-size:19px;margin-bottom:8px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:10px 0 14px}
@@ -18,7 +19,7 @@ input,select,button{font:inherit;color:var(--ink);background:var(--panel);border
 button{cursor:pointer}:focus-visible{outline:2px solid var(--sec);outline-offset:2px}
 .status{font-size:13px;color:var(--mute)}
 .status b{color:var(--ink)}
-main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px;align-items:start}
+main{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:14px;align-items:start}
 @media(max-width:860px){main{grid-template-columns:1fr}#tl{order:-1}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
 #list{max-height:76vh;overflow:auto}
@@ -31,7 +32,7 @@ main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px;align-i
 .times button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .times button.cf{border-color:var(--bad);color:var(--bad)}
 .times button.on.cf{background:var(--bad);color:#fff}
-#scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+#scroll{overflow:hidden}
 #axis{position:relative;min-height:200px}
 .hr{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);font-size:12px;color:var(--mute);padding:3px 0 0 4px}
 .hr.half{border-left-style:dashed;opacity:.5}
@@ -64,7 +65,8 @@ h1::after{content:'';position:absolute;left:0;bottom:0;width:64px;height:3px;bor
 .ib{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #msg{flex:1 1 100%}
-main.nolist{grid-template-columns:1fr}main.nolist #side{display:none}
+main>*{min-width:0}
+main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 .tgbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .tg{display:flex;align-items:center;gap:4px;padding:5px 10px}.tg small{color:var(--mute);font-size:12px}
 .tg[aria-expanded=true] .chev{transform:rotate(90deg)}
@@ -76,7 +78,7 @@ main.nolist{grid-template-columns:1fr}main.nolist #side{display:none}
 .tabs button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .tabs small{display:block;font-size:10px;opacity:.85}
 .day{margin-bottom:12px}
-.dh{position:sticky;left:0;display:flex;align-items:baseline;gap:10px;width:fit-content;max-width:90vw;margin-bottom:4px}
+.dh{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;max-width:100%;margin-bottom:4px}
 .dl{font-weight:600;padding:3px 10px;text-transform:capitalize}
 .day.act .dl{background:var(--accent);border-color:var(--accent);color:#fff}
 .ds{font-size:13px;color:var(--mute)}
@@ -86,6 +88,8 @@ main.nolist{grid-template-columns:1fr}main.nolist #side{display:none}
 .blk .x{position:absolute;top:2px;right:3px;background:rgba(0,0,0,.28);color:#fff;border:0;border-radius:3px;padding:0 5px;font-size:13px;line-height:16px;cursor:pointer}
 .floaty{position:fixed;z-index:1000;pointer-events:none;opacity:.92;box-shadow:0 6px 16px rgba(0,0,0,.35)}
 .ghost.dg{z-index:5;top:24px}.ghost.no{border-color:var(--bad);background:rgba(209,31,58,.14)}
+.blk.nar .x{display:none}.blk.nar:hover .x,.blk.nar:focus .x{display:block}
+.dot.bad{background:var(--bad)}
 .blk.dup{box-shadow:inset 0 0 0 3px #f2a900}
 .amb{color:#b36b00;font-weight:600}@media (prefers-color-scheme:dark){.amb{color:#f2a900}}
 .rep{font-size:12px;color:#b36b00;margin:4px 0 0}@media (prefers-color-scheme:dark){.rep{color:#f2a900}}
@@ -99,7 +103,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 <div class="tgbar">
   <button class="tg ic" id="tgS" aria-expanded="true" aria-controls="side" aria-label="Mostrar u ocultar la lista de carreras" title="Lista de carreras"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
   <button class="tg ic" id="tgF" aria-expanded="false" aria-controls="filters" aria-label="Filtros" title="Filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg><i class="dot" id="fdot" hidden></i></button>
-  <button class="tg ic" id="tgD" aria-expanded="false" aria-controls="datapanel" aria-label="Datos" title="Datos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 12h16M10 7.5h4M10 16.5h4"/></svg></button>
+  <button class="tg ic" id="tgD" aria-expanded="false" aria-controls="datapanel" aria-label="Datos" title="Datos"><i class="dot bad" id="ddot" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 12h16M10 7.5h4M10 16.5h4"/></svg></button>
   <button class="tg ic" id="tgM" aria-expanded="false" aria-controls="custompanel" aria-label="Crear bloque personalizado" title="Bloque personalizado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="3"/><path d="M12 9.5v5M9.5 12h5"/></svg></button>
 </div>
 <div class="bar" id="filters" hidden>
@@ -288,7 +292,7 @@ const EMBEDDED=[];
 const KEY='iracing-planner-v2';
 let DATA=EMBEDDED, SRC='', SIG='';
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.data&&s.data.length){DATA=s.data;SRC=s.name;SIG=s.sig||''}}catch(e){}
-let PPH=90,VIEW={h0:0,h1:24};const DAY=864e5;
+let PPH=90,VIEW={h0:0,h1:24},lastW=0;const DAY=864e5;
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,'0');
 const hhmm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
@@ -404,9 +408,10 @@ function drawTimeline(){
   let nBad=0;items.forEach(it=>{it.bad=items.some(o=>o!==it&&clash(it,o));if(it.bad)nBad++;it.dup=!it.r.manual&&cnt[it.r.name]>1});
   const fm=tmin($('from').value||'00:00'),tm=tmin($('to').value||'24:00');
   let h0=Math.floor(fm/60),h1=Math.ceil(tm/60);if(h1<=h0){h0=0;h1=24}
-  const avail=$('scroll').clientWidth||0;
-  PPH=Math.max(90,avail?Math.floor((avail-2)/(h1-h0)):90);VIEW={h0,h1};
-  const top=24,rowH=58,W=(h1-h0)*PPH,nowT=Date.now();let html='';
+  const avail=$('scroll').clientWidth||900;lastW=avail;
+  PPH=Math.max(4,(avail-2)/(h1-h0));VIEW={h0,h1};
+  const ls=PPH>=56?1:PPH>=28?2:PPH>=19?3:6;
+  const top=24,rowH=58,W=avail,nowT=Date.now();let html='';
   for(let i=0;i<7;i++){
     const di=dayInfo(i),px=ms=>((ms-di.d0)/36e5-h0)*PPH,v0=di.d0+h0*36e5,v1=di.d0+h1*36e5;
     const dayAll=items.filter(it=>it.e>di.d0&&it.s<di.d1),its=dayAll.filter(it=>it.e>v0&&it.s<v1),rows=[],pos=new Map();
@@ -414,11 +419,11 @@ function drawTimeline(){
     const pv=preview&&slot(preview.r,preview.t),showPv=pv&&pv.e>v0&&pv.s<v1;
     const nRows=Math.max(rows.length,1)+(showPv?1:0);
     let h='';
-    for(let k=h0;k<h1;k++)h+=`<div class="hr" style="left:${(k-h0)*PPH}px">${pad(k)}:00</div><div class="hr half" style="left:${(k-h0)*PPH+PPH/2}px"></div>`;
+    for(let k=h0;k<h1;k++)h+=`<div class="hr" style="left:${(k-h0)*PPH}px">${(k-h0)%ls===0?pad(k)+':00':''}</div>`+(PPH>=56?`<div class="hr half" style="left:${(k-h0)*PPH+PPH/2}px"></div>`:'');
     if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="Ahora"></div>`;
     its.forEach(it=>{
-      const w=Math.max((it.e-it.s)/36e5*PPH,40);
-      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${it.dup?'Serie repetida en tu plan. ':''}Arrastra para moverla de día u hora">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}</small><button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      const w=Math.max((it.e-it.s)/36e5*PPH,16);
+      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${it.dup?'Serie repetida en tu plan. ':''}Arrastra para moverla de día u hora">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}</small><button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
     });
     if(showPv)h+=`<div class="ghost" style="left:${px(pv.s)}px;width:${(pv.e-pv.s)/36e5*PPH}px;top:${top+(nRows-1)*rowH}px"></div>`;
     const own=dayAll.filter(it=>it.s>=di.d0),hid=own.filter(it=>!(it.e>v0&&it.s<v1)).length,nm=own.filter(x=>x.r.manual).length,nr=own.length-nm,sum=own.length?`${nr} carrera${nr==1?'':'s'}${nm?` + ${nm} manual${nm>1?'es':''}`:''} · ${hhmm(new Date(own[0].s))}–${hhmm(new Date(Math.max(...own.map(x=>x.e))))}${hid?` · ${hid} fuera del rango horario`:''}`:'sin carreras';
@@ -524,6 +529,7 @@ function startNameDrag(e,r,hd){
 const pdfScript=null;
 function dataRange(){if(!DATA.length)return ['',''];const ds=DATA.flatMap(s=>s.w.map(w=>w[0])).sort();return [ds[0],new Date(Date.parse(ds[ds.length-1])+6*DAY).toISOString().slice(0,10)]}
 function refreshInfo(){
+  setTimeout(updDot,0);
   if(!DATA.length){$('info').textContent='Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.';$('nohr').textContent='';return}
   const [a,b]=dataRange();
   $('info').textContent=`Calendario: ${SRC} · ${DATA.length} series · del ${a} al ${b} · horas en tu zona horaria`;
@@ -539,7 +545,11 @@ const flip=k=>()=>{ui[k]=!ui[k];applyUi();saveState();if(k==='s')drawTimeline()}
 $('tgM').onclick=flip('m');$('tgS').onclick=flip('s');$('hideSide').onclick=flip('s');
 $('tgF').onclick=()=>{ui.f=!ui.f;applyUi();saveState()};
 $('tgD').onclick=()=>{ui.d=!ui.d;applyUi();saveState()};
-new MutationObserver(()=>{const m=$('msg');if(m.classList.contains('msgerr')&&m.textContent&&!ui.d&&!DATA.length){ui.d=true;applyUi()}}).observe($('msg'),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
+function updDot(){
+  const m=$('msg'),err=!DATA.length||(m.classList.contains('msgerr')&&!!m.textContent);
+  $('ddot').hidden=!err;$('tgD').title=err?'Datos · hay un aviso'+(m.textContent?': '+m.textContent:''):'Datos';
+}
+new MutationObserver(updDot).observe($('msg'),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
 function reconcilePlan(){
   let lost=0;const items=[...plan.entries()];plan.clear();
   for(const [k,v] of items){
@@ -558,7 +568,7 @@ function stateObj(){
 }
 function saveState(){
   try{localStorage.setItem(SKEY,JSON.stringify(stateObj()))}
-  catch(e){if(storageOK){storageOK=false;$('msg').className='status msgerr';$('msg').textContent='Este navegador no permite guardar tu plan (almacenamiento bloqueado).';ui.d=true;applyUi()}}
+  catch(e){if(storageOK){storageOK=false;$('msg').className='status msgerr';$('msg').textContent='Este navegador no permite guardar tu plan (almacenamiento bloqueado).'}}
 }
 function applyState(s){
   const put=(id,v)=>{const e=$(id);if(v!=null&&(e.tagName!=='SELECT'||[...e.options].some(o=>o.value===v)))e.value=v};
@@ -637,6 +647,7 @@ const restored=loadState();applyUi();
 $('clear').onclick=()=>{plan.clear();render()};
 const sc=()=>{$('scroll').scrollLeft=0};
 addEventListener('resize',()=>drawTimeline());
+if(window.ResizeObserver)new ResizeObserver(()=>{const w=$('scroll').clientWidth;if(w&&Math.abs(w-lastW)>0.5)drawTimeline()}).observe($('scroll'));
 if(!restored&&DATA.length){const [a,b]=dataRange(),td=dayKey(new Date());if(!(td>=a&&td<=b))$('day').value=a}
 refreshInfo();render();sc();
 loadCalendar();
