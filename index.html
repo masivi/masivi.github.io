@@ -128,6 +128,7 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 .dot.bad{background:var(--bad)}
 .ib{position:relative}.ib[disabled]{opacity:.35;cursor:default}.ib[disabled]:hover{border-color:var(--line)}
 .bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;border-radius:9px;background:var(--ter);color:#0f1620;font:700 11px/18px system-ui;text-align:center;padding:0 4px}
+option{font-weight:400;color:var(--ink);background:var(--panel)}
 option.cur{font-weight:700;color:var(--accent-t)}
 select.curwk{font-weight:700;color:var(--accent-t);border-color:var(--sec)}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:2000}
@@ -193,7 +194,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
     <div class="tlbody" id="tlbody">
     <div id="viewT"><div id="scroll"><div id="days"></div></div></div>
     <div id="viewA" hidden>
-      <div class="ahead"><button class="ib" id="copyA" aria-label="Copiar agenda" title="Copiar agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><span class="status" id="copymsg" role="status"></span></div>
+      <div class="ahead"><button class="ib" id="copyA" aria-label="Copiar agenda" title="Copiar agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button class="ib" id="icsA" aria-label="Descargar calendario (.ics)" title="Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5l2.5 2.5 2.5-2.5"/></svg></button><span class="status" id="copymsg" role="status"></span></div>
       <div id="agenda"></div>
     </div>
     <details><summary>Notas sobre los datos</summary>
@@ -624,6 +625,31 @@ function agendaText(){
   }
   return lines.join('\n').trimEnd()+'\n';
 }
+const icsEsc=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+const icsDt=ms=>new Date(ms).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+function icsFold(l){
+  const enc=new TextEncoder();let out='',cur='',n=0;
+  for(const ch of l){const b=enc.encode(ch).length;if(n+b>74){out+=cur+'\r\n ';cur=ch;n=b+1}else{cur+=ch;n+=b}}
+  return out+cur;
+}
+function icsText(){
+  const items=agendaData().flatMap(d=>d.its),stamp=icsDt(Date.now());
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//iracing-planner//ES','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+icsEsc($('ttl').textContent)];
+  for(const it of items){
+    const desc=it.r.manual?`Bloque personal · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} min de carrera · licencia ${it.r.lic}${it.r.unc?' · Horario por confirmar':''}`;
+    L.push('BEGIN:VEVENT',`UID:iracing-${String(it.r.uid).replace(/[^A-Za-z0-9._-]/g,'')}-${it.s}@planner`,'DTSTAMP:'+stamp,'DTSTART:'+icsDt(it.s),'DTEND:'+icsDt(it.e),'SUMMARY:'+icsEsc(it.r.name),'DESCRIPTION:'+icsEsc(desc),'CATEGORIES:'+(it.r.manual?'Personal':'iRacing'),'TRANSP:OPAQUE','END:VEVENT');
+  }
+  L.push('END:VCALENDAR');
+  return {text:L.map(icsFold).join('\r\n')+'\r\n',n:items.length};
+}
+$('icsA').onclick=()=>{
+  const m=$('copymsg'),{text,n}=icsText();
+  if(!n){m.textContent='No hay nada que descargar esta semana';setTimeout(()=>{m.textContent=''},2500);return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/calendar;charset=utf-8'}));
+  const wk=META&&META.w1?'semana-'+($('day').selectedIndex+1)+'-':'';a.download=`iracing-${wk}${$('day').value}.ics`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  m.textContent=`Calendario descargado (${n} evento${n>1?'s':''})`;setTimeout(()=>{m.textContent=''},2500);
+};
 $('copyA').onclick=async()=>{
   const txt=agendaText();let ok=false;
   try{await navigator.clipboard.writeText(txt);ok=true}
