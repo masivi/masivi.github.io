@@ -126,6 +126,22 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 @keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--ter),0 0 14px var(--ter)}100%{box-shadow:none}}
 .blk.flash{animation:flash 1.6s ease-out}
 .dot.bad{background:var(--bad)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:2000}
+.dlg{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-top:3px solid var(--sec);border-radius:10px;width:min(800px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.dh2{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px 6px}
+.dh2 h2{margin:0 0 4px}.dh2 p{margin:0}
+.fbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 16px;border-bottom:1px solid var(--line)}
+.fonly{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink)}
+.fbody{flex:1;min-height:0;overflow-y:auto;padding:0 16px}
+.fr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.fr.ok{background:linear-gradient(90deg,rgba(121,255,74,.16),transparent 60%)}
+.fv{flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:13px;white-space:nowrap}
+.fn b{display:block;font-weight:600}.fn small{color:var(--mute)}
+.fc{display:flex;gap:8px}.fc label{font-size:11px}.fc input[type=text]{width:210px}
+.fc .bad{border-color:var(--bad)}
+.dfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 14px}
+input[type=checkbox]{accent-color:var(--sec);width:16px;height:16px}
+@media(max-width:560px){.fr{grid-template-columns:auto minmax(0,1fr)}.fc{grid-column:1/-1}.fc input[type=text]{width:100%}}
 .unc{color:#b36b00;font-size:13px;margin-left:6px;cursor:help;flex:none}@media (prefers-color-scheme:dark){.unc{color:#f2a900}}
 .blk.dup{box-shadow:inset 0 0 0 3px #f2a900}
 .amb{color:#b36b00;font-weight:600}@media (prefers-color-scheme:dark){.amb{color:#f2a900}}
@@ -156,7 +172,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 </div>
 <div id="datapanel" hidden>
   <div class="status" id="info"></div>
-  <div class="bar" style="margin:6px 0 14px"><button id="exp" title="Descarga tu plan y tus ajustes como archivo">Exportar plan</button><button id="imp" title="Carga un plan exportado desde otro navegador">Importar plan…</button><button id="clear">Vaciar plan</button><button id="tpl" title="Descarga SchedulePatches.json con las series de horario dudoso, para corregirlas">Plantilla de correcciones</button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
+  <div class="bar" style="margin:6px 0 14px"><button id="exp" title="Descarga tu plan y tus ajustes como archivo">Exportar plan</button><button id="imp" title="Carga un plan exportado desde otro navegador">Importar plan…</button><button id="clear">Vaciar plan</button><button id="fixbtn" title="Revisa y confirma los horarios que el PDF no indica">Confirmar horarios</button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
 </div>
 
 <div id="custompanel" hidden>
@@ -182,6 +198,19 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
     <div id="sum"></div>
   </section>
 </main>
+
+<div class="ov" id="fixov" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="fixt">
+    <div class="dh2">
+      <div><h2 id="fixt">Confirmar horarios</h2>
+        <p class="status">El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC.</p></div>
+      <button class="ib" id="fixclose" aria-label="Cerrar" title="Cerrar">×</button>
+    </div>
+    <div class="fbar"><span class="status" id="fixcount"></span><label class="fonly"><input type="checkbox" id="fixonly"> Solo pendientes</label></div>
+    <div class="fbody" id="fixbody"></div>
+    <div class="dfoot"><span class="status" id="fixmsg" role="status"></span><button id="fixok">Cerrar</button></div>
+  </div>
+</div>
 <script>/**
  * @licstart The following is the entire license notice for the
  * JavaScript code in this page
@@ -393,6 +422,9 @@ function startsOfWeek(p,wk){
 }
 const PATCH_KEY='iracing-planner-patches',PATCH_FILE='SchedulePatches.json';
 let PATCH={series:{}},EFF=[];
+const VAL_KEY='iracing-planner-val';
+let VAL={series:{}};
+try{const s=JSON.parse(localStorage.getItem(VAL_KEY)||'null');if(s&&s.series)VAL=s}catch(e){}
 try{const s=JSON.parse(localStorage.getItem(PATCH_KEY)||'null');if(s&&s.series)PATCH=s}catch(e){}
 function patToPattern(pt){
   if(!pt||pt.confirmed!==true)return null;
@@ -411,7 +443,7 @@ function patToPattern(pt){
   return null;
 }
 function rebuildEff(){
-  EFF=DATA.map(s=>{const p=patToPattern((PATCH.series||{})[s.n]);return p?{...s,p,fix:1}:s});
+  EFF=DATA.map(s=>{const p=patToPattern((VAL.series||{})[s.n]||(PATCH.series||{})[s.n]);return p?{...s,p,fix:1}:s});
 }
 const nFixed=()=>EFF.filter(s=>s.fix).length,nUnc=()=>EFF.filter(s=>s.p&&s.p.inf&&!s.fix).length;
 function racesForDay(key){
@@ -684,10 +716,11 @@ function applyTitle(){
 }
 function refreshInfo(){
   setTimeout(updDot,0);
+  {const pend=EFF.filter(s=>(!s.p||s.p.inf)&&!s.fix).length;$('fixbtn').textContent='Confirmar horarios'+(pend?` (${pend})`:'')}
   if(!DATA.length){$('info').textContent='Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.';$('nohr').textContent='';return}
   const [a,b]=dataRange();
   const nu=nUnc(),nf=nFixed();
-  $('info').textContent=`Calendario: ${SRC} · ${DATA.length} series · del ${a} al ${b} · horas en tu zona horaria`+(nu?` · ⚠ ${nu} series con horario por confirmar`:'')+(nf?` · ${nf} correcciones aplicadas`:'');
+  $('info').textContent=`Calendario: ${SRC} · ${DATA.length} series · del ${a} al ${b} · horas en tu zona horaria`+(nu?` · ⚠ ${nu} series con horario por confirmar`:'')+(nf?` · ${nf} horario${nf>1?'s':''} validado${nf>1?'s':''}`:'');
   $('nohr').textContent='Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: '+(EFF.filter(s=>!s.p).map(s=>s.n).join(', ')||'ninguna')+'.';
 }
 function applyUi(){
@@ -746,7 +779,7 @@ function loadState(){
 }
 const validState=s=>s&&s.v===1&&Array.isArray(s.plan)&&s.plan.every(o=>o&&typeof o.k==='string'&&Number.isFinite(o.t)&&o.r&&typeof o.r.name==='string'&&typeof o.r.uid==='string'&&Number.isFinite(o.r.dur));
 $('exp').onclick=()=>{
-  const blob=new Blob([JSON.stringify({...stateObj(),app:'iracing-planner',exported:new Date().toISOString()},null,1)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({...stateObj(),val:VAL.series||{},app:'iracing-planner',exported:new Date().toISOString()},null,1)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`iracing-plan-${dayKey(new Date())}.json`;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
   $('msg').className='status';$('msg').textContent=`Plan exportado (${plan.size} bloque${plan.size==1?'':'s'}).`;
@@ -759,7 +792,8 @@ $('impfile').onchange=async e=>{
     const s=JSON.parse(await f.text());
     if(!validState(s))throw new Error('el archivo no es un plan exportado por esta aplicación');
     if(plan.size&&!confirm('Importar sustituirá tu plan y tus ajustes actuales. ¿Continuar?'))return;
-    applyState(s);const lost=DATA.length?reconcilePlan():0;
+    applyState(s);if(s.val&&typeof s.val==='object'&&!Array.isArray(s.val)){VAL={series:s.val};persistVal();rebuildEff()}
+    const lost=DATA.length?reconcilePlan():0;
     $('mday').value=active;applyUi();render();
     msg.className='status';msg.textContent=`Plan importado (${plan.size} bloque${plan.size==1?'':'s'}).`+(lost?` ${lost} carrera${lost>1?'s':''} no existe${lost>1?'n':''} en el calendario actual y se ${lost>1?'han':'ha'} omitido.`:'');
   }catch(err){msg.className='status msgerr';msg.textContent='No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido':err.message)+'.'}
@@ -788,27 +822,95 @@ async function loadPatches(){
   rebuildEff();const lost=reconcilePlan();refreshInfo();render();
   if(lost){msg.className='status';msg.textContent=`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió con las correcciones.`}
 }
-function buildTemplate(){
-  const series={};
-  for(const s of DATA){
-    const cur=(PATCH.series||{})[s.n];if(cur&&cur.confirmed===true)continue;
-    if(!s.p){series[s.n]={confirmed:false,weekly:[],_nota:'El PDF no da horas. Rellena weekly con pares ["Sat","19:00"] (hora UTC) y pon confirmed a true.'};continue}
-    if(s.p.inf&&s.p.k==='i'){
-      const e={confirmed:false,every:s.p.s,at:s.p.o};
-      if(s.p.s===120){e.hours=s.p.p?'odd':'even';e._nota='El PDF no indica si son horas pares o impares (se ha supuesto '+(s.p.p?'impares':'pares')+'). Comprueba y pon confirmed a true.'}
-      else e._nota='El PDF no indica los minutos exactos (se han supuesto). Comprueba y pon confirmed a true.';
-      series[s.n]=e;
-    }
+const DAYS_ES={Mon:'Lun',Tue:'Mar',Wed:'Mié',Thu:'Jue',Fri:'Vie',Sat:'Sáb',Sun:'Dom'};
+const DAY_IN={lun:'Mon',mon:'Mon',mar:'Tue',tue:'Tue',mie:'Wed','mié':'Wed',wed:'Wed',jue:'Thu',thu:'Thu',vie:'Fri',fri:'Fri',sab:'Sat','sáb':'Sat',sat:'Sat',dom:'Sun',sun:'Sun'};
+function parseSlotsTxt(txt){
+  const out=[];
+  for(const tk of txt.split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean)){
+    const m=tk.toLowerCase().match(/^([a-zñáéíóú]{3})[a-zñáéíóú]*\.?\s+(\d{1,2})(?::(\d\d))?$/);
+    if(!m||!DAY_IN[m[1]])return null;
+    const h=+m[2],mi=+(m[3]||0);if(h>23||mi>59)return null;
+    out.push([DAY_IN[m[1]],pad(h)+':'+pad(mi)]);
   }
-  return {version:1,_ayuda:'Horas en UTC. Cada serie solo se corrige si confirmed es true; con false se ignora. every: 30, 60 o 120 (minutos). at: minutos dentro de la hora. hours: even (pares) u odd (impares), solo con every 120. weekly: lista de [día, "HH:MM"] con días Mon..Sun.',series};
+  return out.length?out:null;
 }
-$('tpl').onclick=()=>{
-  const o=buildTemplate(),n=Object.keys(o.series).length,msg=$('msg');
-  if(!n){msg.className='status';msg.textContent='No hay series pendientes de confirmar.';return}
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.download=PATCH_FILE;
-  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-  msg.className='status';msg.textContent=`Plantilla descargada (${n} series). Edítala y colócala junto al HTML con el nombre ${PATCH_FILE}.`;
-};
+const slotsTxt=w=>w.map(([d,tm])=>DAYS_ES[d]+' '+tm).join(', ');
+const filePatched=n=>((PATCH.series||{})[n]||{}).confirmed===true;
+const fixItems=()=>DATA.filter(s=>!s.p||s.p.inf||(VAL.series||{})[s.n]||filePatched(s.n)).sort((a,b)=>a.n.localeCompare(b.n));
+function persistVal(){try{Object.keys(VAL.series).length?localStorage.setItem(VAL_KEY,JSON.stringify(VAL)):localStorage.removeItem(VAL_KEY)}catch(e){}}
+function saveVal(name,entry){
+  VAL.series=VAL.series||{};
+  if(entry)VAL.series[name]=entry;else delete VAL.series[name];
+  persistVal();rebuildEff();const lost=reconcilePlan();refreshInfo();render();return lost;
+}
+function fixDesc(s){
+  if(!s.p)return 'El PDF solo indica «timeslots por semana», sin horas';
+  if(s.p.k!=='i')return 'Horario semanal';
+  return s.p.s===120?`Cada 2 horas, a los :${pad(s.p.o[0])}`:s.p.s===60?'Cada hora':'Cada 30 minutos';
+}
+function fixRow(s){
+  const v=(VAL.series||{})[s.n],fp=!v&&filePatched(s.n),ent=v||(PATCH.series||{})[s.n]||null,ok=!!v||fp,dis=fp?' disabled':'';
+  let c='';
+  if(!s.p){
+    const val=ent&&ent.weekly?slotsTxt(ent.weekly):'';
+    c=`<label>Horas de salida (UTC)<input type="text" class="fs" placeholder="Mar 19:00, Sáb 12:30" value="${esc(val)}"${dis}></label>`;
+  }else if(s.p.k==='i'&&s.p.s===120){
+    const odd=ent&&ent.hours?ent.hours==='odd':!!s.p.p;
+    c=`<label>Horas<select class="fh"${dis}><option value="even"${odd?'':' selected'}>Pares</option><option value="odd"${odd?' selected':''}>Impares</option></select></label>`;
+  }else if(s.p.k==='i'&&s.p.s===30){
+    const m=ent&&ent.at?ent.at[0]%30:s.p.o[0]%30;
+    c=`<label>Minutos<select class="fm"${dis}><option value="0"${m?'':' selected'}>:00 y :30</option><option value="15"${m?' selected':''}>:15 y :45</option></select></label>`;
+  }else if(s.p.k==='i'){
+    const m=ent&&ent.at?ent.at[0]:s.p.o[0];
+    c=`<label>Minuto<select class="fm"${dis}>${[0,15,30,45].map(x=>`<option value="${x}"${x===m?' selected':''}>:${pad(x)}</option>`).join('')}</select></label>`;
+  }
+  return `<div class="fr${ok?' ok':''}" data-n="${esc(s.n)}"><label class="fv"><input type="checkbox" class="fcv"${ok?' checked':''}${dis}> Validado</label><div class="fn"><b>${esc(s.n)}</b><small>${esc(fixDesc(s))}${fp?' · fijado en SchedulePatches.json':''}</small></div><div class="fc">${c}</div></div>`;
+}
+function fixCount(){
+  const items=fixItems(),ok=items.filter(s=>(VAL.series||{})[s.n]||filePatched(s.n)).length;
+  $('fixcount').textContent=`Validadas ${ok} de ${items.length}`;
+}
+function renderFix(){
+  const only=$('fixonly').checked;
+  const items=fixItems().filter(s=>!only||!((VAL.series||{})[s.n]||filePatched(s.n)));
+  $('fixbody').innerHTML=items.length?items.map(fixRow).join(''):'<p class="none" style="padding:16px 0">No quedan horarios por confirmar.</p>';
+  fixCount();
+}
+function entryFor(s,row){
+  if(!s.p){const sl=parseSlotsTxt(row.querySelector('.fs').value);return sl?{confirmed:true,weekly:sl}:false}
+  if(s.p.s===120)return {confirmed:true,every:120,at:s.p.o,hours:row.querySelector('.fh').value};
+  return {confirmed:true,every:s.p.s,at:[+row.querySelector('.fm').value]};
+}
+$('fixbody').addEventListener('change',e=>{
+  const row=e.target.closest('.fr');if(!row)return;
+  const name=row.dataset.n,s=DATA.find(x=>x.n===name),cb=row.querySelector('.fcv'),msg=$('fixmsg');
+  if(!s)return;
+  msg.textContent='';const inp=row.querySelector('.fs');if(inp)inp.classList.remove('bad');
+  if(!cb.checked&&!(VAL.series||{})[name])return;
+  let entry=null;
+  if(cb.checked){
+    entry=entryFor(s,row);
+    if(entry===false){cb.checked=false;inp.classList.add('bad');msg.textContent='No entiendo esas horas. Escribe, por ejemplo: Mar 19:00, Sáb 12:30';return}
+  }
+  const lost=saveVal(name,entry);
+  row.classList.toggle('ok',!!entry);fixCount();
+  msg.textContent=(entry?'Guardado. ':'Validación quitada. ')+(lost?`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
+});
+$('fixonly').onchange=renderFix;
+let fixOpener=null;
+function openFix(){fixOpener=document.activeElement;$('fixmsg').textContent='';renderFix();$('fixov').hidden=false;$('fixclose').focus()}
+function closeFix(){$('fixov').hidden=true;if(fixOpener&&fixOpener.focus)fixOpener.focus()}
+$('fixbtn').onclick=openFix;$('fixclose').onclick=closeFix;$('fixok').onclick=closeFix;
+$('fixov').addEventListener('click',e=>{if(e.target===$('fixov'))closeFix()});
+document.addEventListener('keydown',e=>{
+  if($('fixov').hidden)return;
+  if(e.key==='Escape'){closeFix();return}
+  if(e.key==='Tab'){
+    const f=[...$('fixov').querySelectorAll('button,input,select,[tabindex]')].filter(x=>!x.disabled&&x.offsetParent!==null||x===document.activeElement);
+    if(!f.length)return;const i=f.indexOf(document.activeElement);
+    if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}
+  }
+});
 const PDF_NAME='SeasonSchedule.pdf';
 function fnv(u8){let h=2166136261;for(let i=0;i<u8.length;i++){h^=u8[i];h=Math.imul(h,16777619)}return (h>>>0).toString(16)+'-'+u8.length}
 async function parseBuffer(buf,onProgress){
