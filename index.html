@@ -10,8 +10,8 @@
 <meta name="theme-color" content="#0f1620">
 <style>
 :root{--bg:#e9edf2;--panel:#fff;--ink:#14202e;--mute:#5d6b7b;--line:#cfd7e1;--accent:#9819FF;--accent-t:#9819FF;--sec:#9819FF;--ter:#79FF4A;--bad:#d11f3a;
---M:#9819FF;--R:#d9363e;--D:#e0791a;--C:#e6c619;--B:#2f9e55;--A:#2a6fdb}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1620;--panel:#182331;--ink:#e6edf5;--mute:#92a1b3;--line:#2a3a4d;--accent:#9819FF;--accent-t:#c48bff}}
+--M:#9819FF;--past:#6b7685;--R:#d9363e;--D:#e0791a;--C:#e6c619;--B:#2f9e55;--A:#2a6fdb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1620;--panel:#182331;--ink:#e6edf5;--mute:#92a1b3;--line:#2a3a4d;--accent:#9819FF;--accent-t:#c48bff;--past:#4b5563}}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;padding:16px}
@@ -126,6 +126,10 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 @keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--ter),0 0 14px var(--ter)}100%{box-shadow:none}}
 .blk.flash{animation:flash 1.6s ease-out}
 .dot.bad{background:var(--bad)}
+.ib{position:relative}.ib[disabled]{opacity:.35;cursor:default}.ib[disabled]:hover{border-color:var(--line)}
+.bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;border-radius:9px;background:var(--ter);color:#0f1620;font:700 11px/18px system-ui;text-align:center;padding:0 4px}
+option.cur{font-weight:700;color:var(--accent-t)}
+select.curwk{font-weight:700;color:var(--accent-t);border-color:var(--sec)}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:2000}
 .dlg{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-top:3px solid var(--sec);border-radius:10px;width:min(800px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .dh2{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px 6px}
@@ -143,6 +147,7 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 input[type=checkbox]{accent-color:var(--sec);width:16px;height:16px}
 @media(max-width:560px){.fr{grid-template-columns:auto minmax(0,1fr)}.fc{grid-column:1/-1}.fc input[type=text]{width:100%}}
 .unc{color:#b36b00;font-size:13px;margin-left:6px;cursor:help;flex:none}@media (prefers-color-scheme:dark){.unc{color:#f2a900}}
+.blk.past{background:var(--past)!important;color:#f1f4f8!important;opacity:.82}
 .blk.dup{box-shadow:inset 0 0 0 3px #f2a900}
 .amb{color:#b36b00;font-weight:600}@media (prefers-color-scheme:dark){.amb{color:#f2a900}}
 .rep{font-size:12px;color:#b36b00;margin:4px 0 0}@media (prefers-color-scheme:dark){.rep{color:#f2a900}}
@@ -169,10 +174,11 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <label>Categoría<select id="cat"><option value="">Todas</option><option value="OVAL">Oval</option><option value="SPORTS CAR">Sports car</option><option value="FORMULA CAR">Formula car</option><option value="DIRT OVAL">Dirt oval</option><option value="DIRT ROAD">Dirt road</option></select></label>
   <label>Buscar<input type="search" id="q" placeholder="Serie o circuito"></label>
   <label>Margen<select id="gap"><option value="0">Sin margen</option><option value="10" selected>10 min</option><option value="20">20 min</option><option value="30">30 min</option></select></label>
+<button class="ib" id="resetF" aria-label="Quitar todos los filtros" title="Quitar todos los filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h15l-6 7v6l-4 2v-8z"/><path d="M16 15l5 5M21 15l-5 5"/></svg></button>
 </div>
 <div id="datapanel" hidden>
   <div class="status" id="info"></div>
-  <div class="bar" style="margin:6px 0 14px"><button id="exp" title="Descarga tu plan y tus ajustes como archivo">Exportar plan</button><button id="imp" title="Carga un plan exportado desde otro navegador">Importar plan…</button><button id="clear">Vaciar plan</button><button id="fixbtn" title="Revisa y confirma los horarios que el PDF no indica">Confirmar horarios</button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
+  <div class="bar" style="margin:6px 0 14px"><button class="ib" id="exp" aria-label="Exportar plan" title="Exportar plan: descarga tu plan y tus ajustes como archivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button><button class="ib" id="imp" aria-label="Importar plan" title="Importar plan: carga un plan exportado desde otro navegador"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg></button><button class="ib" id="clear" aria-label="Vaciar plan" title="Vaciar plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button><button class="ib" id="fixbtn" aria-label="Confirmar horarios" title="Confirmar horarios"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span class="bdg" id="fixn" hidden></span></button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
 </div>
 
 <div id="custompanel" hidden>
@@ -477,7 +483,7 @@ function render(){
   renderTabs();
   $('actday').textContent=di.label;
   const fs=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent,$('q').value.trim()&&'«'+$('q').value.trim()+'»'].filter(Boolean).join(' · ');
-  $('tgF').title='Filtros · '+fs;$('fdot').hidden=!($('lic').value||$('cat').value||$('q').value.trim());
+  $('tgF').title='Filtros · '+fs;const dflt=!$('lic').value&&!$('cat').value&&!$('q').value.trim()&&$('from').value==='16:00'&&$('to').value==='24:00';$('fdot').hidden=dflt;$('resetF').disabled=dflt;
   const q=$('q').value.trim().toLowerCase(), f=tmin($('from').value||'00:00'), to=tmin($('to').value||'24:00');
   let races=racesForDay(k).filter(r=>(!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(!q||(r.name+' '+r.track).toLowerCase().includes(q)));
   races.forEach(r=>r.vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to));
@@ -546,7 +552,7 @@ function drawTimeline(){
     if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="Ahora"></div>`;
     its.forEach(it=>{
       const w=Math.max((it.e-it.s)/36e5*PPH,16);
-      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${it.dup?'Serie repetida en tu plan. ':''}${it.r.unc?'Horario por confirmar. ':''}Arrastra para moverla de día u hora">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?'<button class="cp" aria-label="Duplicar bloque" title="Duplicar bloque (Ctrl+D)">⧉</button>':''}<button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${!it.r.manual&&it.e<=nowT?'past':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${it.dup?'Serie repetida en tu plan. ':''}${it.r.unc?'Horario por confirmar. ':''}Arrastra para moverla de día u hora">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?'<button class="cp" aria-label="Duplicar bloque" title="Duplicar bloque (Ctrl+D)">⧉</button>':''}<button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
     });
     if(showPv)h+=`<div class="ghost" style="left:${px(pv.s)}px;width:${(pv.e-pv.s)/36e5*PPH}px;top:${top+(nRows-1)*rowH}px"></div>`;
     const own=dayAll.filter(it=>it.s>=di.d0),hid=own.filter(it=>!(it.e>v0&&it.s<v1)).length,nm=own.filter(x=>x.r.manual).length,nr=own.length-nm,sum=own.length?`${nr} carrera${nr==1?'':'s'}${nm?` + ${nm} manual${nm>1?'es':''}`:''} · ${hhmm(new Date(own[0].s))}–${hhmm(new Date(Math.max(...own.map(x=>x.e))))}${hid?` · ${hid} fuera del rango horario`:''}`:'sin carreras';
@@ -624,7 +630,7 @@ $('copyA').onclick=async()=>{
   catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{ok=document.execCommand('copy')}catch(_){}ta.remove()}
   const m=$('copymsg');m.textContent=ok?'Agenda copiada ✓':'No se pudo copiar';setTimeout(()=>{m.textContent=''},2500);
 };
-let suppress=false,flashKey=null;
+let suppress=false,flashKey=null,dragOn=false;
 function dupBlock(k){
   const v=plan.get(k);if(!v||!v.r.manual)return;
   const id='m'+(++mseq);
@@ -659,7 +665,7 @@ function dragSession(e,cfg){
     ax.appendChild(st.ghost);
   };
   const begin=()=>{
-    st.on=true;cfg.begin();
+    st.on=true;dragOn=true;cfg.begin();
     st.clone=cfg.clone();st.clone.classList.add('floaty');document.body.appendChild(st.clone);
     if(!cfg.manual){st.cand=[];for(let i=0;i<7;i++)st.cand.push(racesForDay(dayInfo(i).key).filter(r=>r.name===cfg.name).flatMap(r=>r.starts.map(t=>({r,t}))))}
     st.iv=setInterval(()=>{
@@ -672,7 +678,7 @@ function dragSession(e,cfg){
   const mv=ev=>{st.last=ev;if(!st.on){if(Math.hypot(ev.clientX-e.clientX,ev.clientY-e.clientY)<5)return;begin()}update()};
   const up=()=>{
     cap.removeEventListener('pointermove',mv);cap.removeEventListener('pointerup',up);cap.removeEventListener('pointercancel',up);
-    clearInterval(st.iv);if(st.clone)st.clone.remove();if(st.ghost)st.ghost.remove();cfg.end();
+    dragOn=false;clearInterval(st.iv);if(st.clone)st.clone.remove();if(st.ghost)st.ghost.remove();cfg.end();
     if(st.on){suppress=true;setTimeout(()=>{suppress=false},60)}
     if(st.on&&st.tgt)cfg.drop(st.tgt);
   };
@@ -704,19 +710,20 @@ function dataRange(){if(!DATA.length)return ['',''];const ds=DATA.flatMap(s=>s.w
 const fmtD=iso=>new Date(iso+'T00:00:00Z').toLocaleDateString('es-ES',{day:'numeric',month:'short',timeZone:'UTC'}).replace('.','');
 function buildWeeks(){
   const sel=$('day'),cur=sel.value,today=dayKey(new Date()),opts=[];
-  if(META&&META.w1){for(let i=0;i<13;i++){const a=isoAdd(META.w1,7*i);opts.push([a,`Semana ${i+1} · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`])}}
-  else{const a=tueOfIso(today);opts.push([a,`Semana actual · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`])}
-  sel.innerHTML=opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');
+  if(META&&META.w1){for(let i=0;i<13;i++){const a=isoAdd(META.w1,7*i),c=a<=today&&today<=isoAdd(a,6);opts.push([a,`${c?'● ':''}Semana ${i+1} · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`,c])}}
+  else{const a=tueOfIso(today);opts.push([a,`● Semana actual · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`,true])}
+  sel.innerHTML=opts.map(o=>`<option value="${o[0]}"${o[2]?' class="cur"':''}>${o[1]}</option>`).join('');
   sel.value=(opts.find(o=>o[0]===cur)||opts.find(o=>o[0]<=today&&today<=isoAdd(o[0],6))||opts[0])[0];
 }
 function applyTitle(){
+  $('day').classList.toggle('curwk',!!($('day').selectedOptions[0]&&$('day').selectedOptions[0].classList.contains('cur')));
   const wk=META&&META.w1?$('day').selectedIndex+1:0;
   const s='Planificador semanal iRacing'+(META?` - Season ${pad(META.s)}-${pad(META.y%100)}`:'')+(wk?` - Semana ${wk}`:'');
   $('ttl').textContent=s;document.title=s;
 }
 function refreshInfo(){
   setTimeout(updDot,0);
-  {const pend=EFF.filter(s=>(!s.p||s.p.inf)&&!s.fix).length;$('fixbtn').textContent='Confirmar horarios'+(pend?` (${pend})`:'')}
+  {const pend=EFF.filter(s=>(!s.p||s.p.inf)&&!s.fix).length,lb=pend?`Confirmar horarios (${pend} pendientes)`:'Confirmar horarios';$('fixn').textContent=pend;$('fixn').hidden=!pend;$('fixbtn').title=lb;$('fixbtn').setAttribute('aria-label',lb)}
   if(!DATA.length){$('info').textContent='Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.';$('nohr').textContent='';return}
   const [a,b]=dataRange();
   const nu=nUnc(),nf=nFixed();
@@ -900,6 +907,7 @@ $('fixonly').onchange=renderFix;
 let fixOpener=null;
 function openFix(){fixOpener=document.activeElement;$('fixmsg').textContent='';renderFix();$('fixov').hidden=false;$('fixclose').focus()}
 function closeFix(){$('fixov').hidden=true;if(fixOpener&&fixOpener.focus)fixOpener.focus()}
+$('resetF').onclick=()=>{$('lic').value='';$('cat').value='';$('q').value='';$('from').value='16:00';$('to').value='24:00';render()};
 $('fixbtn').onclick=openFix;$('fixclose').onclick=closeFix;$('fixok').onclick=closeFix;
 $('fixov').addEventListener('click',e=>{if(e.target===$('fixov'))closeFix()});
 document.addEventListener('keydown',e=>{
@@ -950,6 +958,7 @@ if(!restored||savedAt!==dayKey(new Date()))active=defaultActive();
 $('clear').onclick=()=>{plan.clear();render()};
 const sc=()=>{$('scroll').scrollLeft=0};
 addEventListener('resize',()=>drawTimeline());
+setInterval(()=>{if(!dragOn&&ui.v==='T'&&!$('viewT').hidden)drawTimeline()},60000);
 if(window.ResizeObserver)new ResizeObserver(()=>{const w=$('scroll').clientWidth;if(w&&Math.abs(w-lastW)>0.5)drawTimeline()}).observe($('scroll'));
 applyTitle();refreshInfo();render();sc();
 (async()=>{await loadPatches();await loadCalendar()})();
