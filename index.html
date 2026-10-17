@@ -137,7 +137,10 @@ select.curwk{font-weight:700;color:var(--accent-t);border-color:var(--sec)}
 .dlg{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-top:3px solid var(--sec);border-radius:10px;width:min(800px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .dh2{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px 6px}
 .dh2 h2{margin:0 0 4px}.dh2 p{margin:0}
-.fbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 16px;border-bottom:1px solid var(--line)}
+.fbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 16px;border-bottom:1px solid var(--line)}
+#fixq{flex:1 1 150px;min-width:0;padding:5px 8px;font-size:13px}
+.fall{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;font-weight:600;background:var(--sec);border-color:var(--sec);color:#fff}
+.fall svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .fonly{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink)}
 .fbody{flex:1;min-height:0;overflow-y:auto;padding:0 16px}
 .fr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
@@ -215,7 +218,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
         <p class="status">El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC.</p></div>
       <button class="ib" id="fixclose" aria-label="Cerrar" title="Cerrar">×</button>
     </div>
-    <div class="fbar"><span class="status" id="fixcount"></span><label class="fonly"><input type="checkbox" id="fixonly"> Solo pendientes</label></div>
+    <div class="fbar"><span class="status" id="fixcount"></span><input type="search" id="fixq" placeholder="Buscar serie" aria-label="Buscar serie"><label class="fonly"><input type="checkbox" id="fixonly"> Solo pendientes</label><button id="fixall" class="fall" title="Valida todas las series pendientes de la lista, con los valores que se ven"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12.5l4 4M7.5 16.5L17 7M10.5 16.5L21 6"/></svg>Validar todo</button></div>
     <div class="fbody" id="fixbody"></div>
     <div class="dfoot"><span class="status" id="fixmsg" role="status"></span><button id="fixok">Cerrar</button></div>
   </div>
@@ -907,8 +910,9 @@ function fixCount(){
 }
 function renderFix(){
   const only=$('fixonly').checked;
-  const items=fixItems().filter(s=>!only||!((VAL.series||{})[s.n]||filePatched(s.n)));
-  $('fixbody').innerHTML=items.length?items.map(fixRow).join(''):'<p class="none" style="padding:16px 0">No quedan horarios por confirmar.</p>';
+  const q=$('fixq').value.trim().toLowerCase();
+  const items=fixItems().filter(s=>(!only||!((VAL.series||{})[s.n]||filePatched(s.n)))&&(!q||s.n.toLowerCase().includes(q)));
+  $('fixbody').innerHTML=items.length?items.map(fixRow).join(''):`<p class="none" style="padding:16px 0">${q?'Ninguna serie coincide con la búsqueda.':'No quedan horarios por confirmar.'}</p>`;
   fixCount();
 }
 function entryFor(s,row){
@@ -932,8 +936,28 @@ $('fixbody').addEventListener('change',e=>{
   msg.textContent=(entry?'Guardado. ':'Validación quitada. ')+(lost?`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
 });
 $('fixonly').onchange=renderFix;
+$('fixq').oninput=renderFix;
+$('fixall').onclick=()=>{
+  const rows=[...$('fixbody').querySelectorAll('.fr')].filter(r=>!r.classList.contains('ok')&&!r.querySelector('.fcv').disabled),msg=$('fixmsg');
+  if(!rows.length){msg.textContent='No hay series pendientes en la lista.';return}
+  const good=[];let skip=0;
+  for(const r of rows){
+    const s=DATA.find(x=>x.n===r.dataset.n),e=s&&entryFor(s,r),i=r.querySelector('.fs');
+    if(!e){skip++;if(i)i.classList.add('bad');continue}
+    if(i)i.classList.remove('bad');
+    good.push([r,s,e]);
+  }
+  if(!good.length){msg.textContent=`${skip} serie${skip>1?'s':''} sin validar: faltan las horas.`;return}
+  if(!confirm(`Se validarán ${good.length} serie${good.length>1?'s':''} con los valores que ves en la lista`+(skip?` (${skip} se quedan pendientes por falta de horas)`:'')+'. ¿Continuar?'))return;
+  VAL.series=VAL.series||{};
+  for(const [r,s,e] of good)VAL.series[s.n]=e;
+  persistVal();rebuildEff();const lost=reconcilePlan();refreshInfo();render();
+  good.forEach(([r])=>{r.classList.add('ok');r.querySelector('.fcv').checked=true});fixCount();
+  const done=good.length;
+  msg.textContent=`${done} validada${done==1?'':'s'}.`+(skip?` ${skip} sin validar: faltan las horas.`:'')+(lost?` ${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
+};
 let fixOpener=null;
-function openFix(){fixOpener=document.activeElement;$('fixmsg').textContent='';renderFix();$('fixov').hidden=false;$('fixclose').focus()}
+function openFix(){fixOpener=document.activeElement;$('fixmsg').textContent='';$('fixq').value='';renderFix();$('fixov').hidden=false;$('fixclose').focus()}
 function closeFix(){$('fixov').hidden=true;if(fixOpener&&fixOpener.focus)fixOpener.focus()}
 $('resetF').onclick=()=>{$('lic').value='';$('cat').value='';$('q').value='';render()};
 $('fixbtn').onclick=openFix;$('fixclose').onclick=closeFix;$('fixok').onclick=closeFix;
