@@ -74,10 +74,13 @@ h1::after{content:'';position:absolute;left:0;bottom:0;width:64px;height:3px;bor
 .ib{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #msg{flex:1 1 100%}
-.vt{display:flex;gap:4px;margin-bottom:10px}
-.vt button{padding:6px 14px;font-weight:600}
-.vt button[aria-selected=true]{background:var(--sec);border-color:var(--sec);color:#fff;box-shadow:inset 0 -3px 0 var(--ter)}
+.vt{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 12px;padding:0 2px}
+.vt button{position:relative;display:flex;align-items:center;justify-content:center;width:58px;height:38px;padding:0;margin-bottom:-1px;border:1px solid var(--line);border-radius:10px 10px 0 0;background:rgba(127,127,127,.12);color:var(--mute)}
+.vt button:hover{color:var(--ink)}
+.vt button[aria-selected=true]{z-index:1;background:var(--panel);color:var(--accent-t);border-bottom-color:var(--panel);box-shadow:inset 0 3px 0 var(--sec)}
+.vt svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ahead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ib{width:34px;height:34px}.ib svg{width:18px;height:18px}
 .ad h3{font:700 17px 'Arial Narrow','Roboto Condensed',system-ui,sans-serif;margin:16px 0 6px;display:flex;align-items:baseline;gap:8px}
 .ad h3 small{font:400 12px system-ui;color:var(--mute)}
 .hoy{font:700 11px system-ui;background:var(--ter);color:#0f1620;border-radius:9px;padding:1px 8px}
@@ -119,6 +122,7 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 @keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--ter),0 0 14px var(--ter)}100%{box-shadow:none}}
 .blk.flash{animation:flash 1.6s ease-out}
 .dot.bad{background:var(--bad)}
+.unc{color:#b36b00;font-size:13px;margin-left:6px;cursor:help;flex:none}@media (prefers-color-scheme:dark){.unc{color:#f2a900}}
 .blk.dup{box-shadow:inset 0 0 0 3px #f2a900}
 .amb{color:#b36b00;font-weight:600}@media (prefers-color-scheme:dark){.amb{color:#f2a900}}
 .rep{font-size:12px;color:#b36b00;margin:4px 0 0}@media (prefers-color-scheme:dark){.rep{color:#f2a900}}
@@ -148,7 +152,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 </div>
 <div id="datapanel" hidden>
   <div class="status" id="info"></div>
-  <div class="bar" style="margin:6px 0 14px"><button id="exp" title="Descarga tu plan y tus ajustes como archivo">Exportar plan</button><button id="imp" title="Carga un plan exportado desde otro navegador">Importar plan…</button><button id="clear">Vaciar plan</button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
+  <div class="bar" style="margin:6px 0 14px"><button id="exp" title="Descarga tu plan y tus ajustes como archivo">Exportar plan</button><button id="imp" title="Carga un plan exportado desde otro navegador">Importar plan…</button><button id="clear">Vaciar plan</button><button id="tpl" title="Descarga SchedulePatches.json con las series de horario dudoso, para corregirlas">Plantilla de correcciones</button><input type="file" id="impfile" accept="application/json,.json" hidden><span class="status" id="msg" role="status"></span></div>
 </div>
 
 <div id="custompanel" hidden>
@@ -159,10 +163,10 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <section class="panel" id="side"><h2><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles</h2>
     <div class="sub"><small id="actday" class="status"></small><span class="acts"><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
   <section class="panel" id="tl">
-    <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT">Línea temporal</button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA">Agenda</button></div>
+    <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT" aria-label="Línea temporal" title="Línea temporal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="10" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="9" y="10.2" width="12" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="5" y="15.4" width="9" height="3.6" rx="1.6" fill="currentColor" stroke="none"/></svg></button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA" aria-label="Agenda" title="Agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7H20"/><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 12H20"/><circle cx="5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 17H20"/></svg></button></div>
     <div id="viewT"><div id="scroll"><div id="days"></div></div></div>
     <div id="viewA" hidden>
-      <div class="ahead"><button id="copyA" title="Copia el plan de la semana como texto">Copiar agenda</button><span class="status" id="copymsg" role="status"></span></div>
+      <div class="ahead"><button class="ib" id="copyA" aria-label="Copiar agenda" title="Copiar agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><span class="status" id="copymsg" role="status"></span></div>
       <div id="agenda"></div>
     </div>
     <div id="sum"></div>
@@ -250,10 +254,11 @@ function intPattern(p){
   o=o.concat([...q.matchAll(/\b(\d\d) past/g)].map(m=>+m[1]));
   if(q.includes('half past'))o.push(30);
   if(/on the hour|top of the hour|the 00/.test(q))o.push(0);
+  let inf=!o.length||(step===120&&!/odd 2|even 2/.test(q));
   if(!o.length)o=step>=60?[0]:[0,30];
   o=[...new Set(o)].sort((a,b)=>a-b);
   if(step===30&&o.length===1){const b=o[0]%30;o=[b,b+30]}
-  return {k:'i',s:step,o,p:q.includes('odd 2')?1:0};
+  return {k:'i',s:step,o,p:q.includes('odd 2')?1:0,...(inf?{inf:1}:{})};
 }
 function weekdayPattern(text){
   const toks=text.replace(/^Races?\s+(on\s+)?/i,'').match(/\d{1,2}(?::\d\d)?\s*(?:am|pm)?|[A-Za-z]+/g)||[];
@@ -285,9 +290,14 @@ function parseMeta(lines,series){
     for(const x of series){if(x.sk!==best[0]||!x.w.length)continue;const d=tueOfIso(x.w[0][0]);c2[d]=(c2[d]||0)+1}
     const b2=Object.entries(c2).sort((a,b)=>b[1]-a[1])[0];if(b2)w1=b2[0];
   }
-  return {s:+s,y:+y,w1};
+  return {s:+s,y:+y,w1,pv:PV};
 }
-function cleanTitle(t){return t.replace(/\s*-?\s*20\d\d Season( \d)?( -? ?Fixed)?$/,'').replace(/^[\s-]+|[\s-]+$/g,'')}
+const PV=2;
+function cleanTitle(t){
+  let b=t.replace(/\s*-?\s*20\d\d Season( \d)?( -? ?(Fixed|Open))?$/,'').replace(/^[\s-]+|[\s-]+$/g,'');
+  for(const w of ['Fixed','Open']){const re=new RegExp('\\b'+w+'\\b','i');if(re.test(t)&&!re.test(b))b+=' - '+w}
+  return b;
+}
 function parseSchedule(lines){
   // 1) índice: títulos y clase/categoría
   const titles=new Map();let sec=null,lastToc=-1;
@@ -375,17 +385,40 @@ function startsOfWeek(p,wk){
   }
   return out;
 }
+const PATCH_KEY='iracing-planner-patches',PATCH_FILE='SchedulePatches.json';
+let PATCH={series:{}},EFF=[];
+try{const s=JSON.parse(localStorage.getItem(PATCH_KEY)||'null');if(s&&s.series)PATCH=s}catch(e){}
+function patToPattern(pt){
+  if(!pt||pt.confirmed!==true)return null;
+  if(pt.every){
+    const s=+pt.every;if(![30,60,120].includes(s))return null;
+    let o=(pt.at||[0]).map(Number).filter(n=>n>=0&&n<60);if(!o.length)o=[0];
+    o=[...new Set(o)].sort((a,b)=>a-b);
+    if(s===30&&o.length===1)o=[o[0]%30,o[0]%30+30];
+    return {k:'i',s,o,p:pt.hours==='odd'?1:0};
+  }
+  if(Array.isArray(pt.weekly)&&pt.weekly.length){
+    const sl=[];
+    for(const [d,tm] of pt.weekly){const dw=DOWS[String(d).slice(0,3).toLowerCase()],m=String(tm).match(/^(\d{1,2}):(\d\d)$/);if(dw!=null&&m)sl.push([dw,+m[1],+m[2]])}
+    return sl.length?(pt.tz?{k:'w',s:sl,tz:pt.tz}:{k:'w',s:sl}):null;
+  }
+  return null;
+}
+function rebuildEff(){
+  EFF=DATA.map(s=>{const p=patToPattern((PATCH.series||{})[s.n]);return p?{...s,p,fix:1}:s});
+}
+const nFixed=()=>EFF.filter(s=>s.fix).length,nUnc=()=>EFF.filter(s=>s.p&&s.p.inf&&!s.fix).length;
 function racesForDay(key){
   const [Y,M,D]=key.split('-').map(Number);
   const L0=new Date(Y,M-1,D).getTime(), L1=new Date(Y,M-1,D+1).getTime();
   const out=[];
-  DATA.forEach((s,id)=>{
+  EFF.forEach((s,id)=>{
     if(!s.p) return;
     for(const wk of s.w){
       const d0=Date.parse(wk[0]+'T00:00:00Z');
       if(d0+8*DAY<=L0||d0>=L1) continue;
       const st=startsOfWeek(s.p,wk).filter(t=>t>=L0&&t<L1).sort((a,b)=>a-b).map(t=>new Date(t));
-      if(st.length) out.push({uid:id+'|'+wk[0],name:s.n,lic:s.l,cat:s.c,track:wk[1],dur:wk[2]+10,est:wk[3],starts:st});
+      if(st.length) out.push({uid:id+'|'+wk[0],name:s.n,lic:s.l,cat:s.c,track:wk[1],dur:wk[2]+10,est:wk[3],unc:!!(s.p.inf&&!s.fix),starts:st});
     }
   });
   return out;
@@ -422,7 +455,7 @@ function render(){
     const ns=[...plan.values()].filter(v=>v.r.uid===r.uid).length;
     const other=[...plan.values()].filter(v=>!v.r.manual&&v.r.name===r.name&&dayKey(v.t)!==k).sort((a,b)=>a.t-b.t);
     const otherTxt=other.map(v=>shortDay(v.t)+' '+hhmm(v.t)).join(', ');
-    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="Arrastra al plan">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${ns?`<span class="cnt">${ns} en plan</span>`:other.length?`<span class="cnt amb" title="Ya en tu plan: ${esc(otherTxt)}">↻ repetida</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">↻ Esta serie ya está en tu plan: ${esc(otherTxt)}</div>`:''}</div>`;
+    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="Arrastra al plan">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?'<span class="unc" title="Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto)">⚠</span>':''}${ns?`<span class="cnt">${ns} en plan</span>`:other.length?`<span class="cnt amb" title="Ya en tu plan: ${esc(otherTxt)}">↻ repetida</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">↻ Esta serie ya está en tu plan: ${esc(otherTxt)}</div>`:''}</div>`;
     const hd=el.querySelector('.rh');
     hd.onpointerdown=e=>{if(e.button>0)return;if(e.pointerType==='touch'&&!e.target.closest('.grip'))return;startNameDrag(e,r,hd)};
     hd.onclick=()=>{if(suppress)return;const now=el.classList.toggle('c');hd.setAttribute('aria-expanded',!now);now?expanded.delete(r.name):expanded.add(r.name);saveState()};
@@ -475,7 +508,7 @@ function drawTimeline(){
     if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="Ahora"></div>`;
     its.forEach(it=>{
       const w=Math.max((it.e-it.s)/36e5*PPH,16);
-      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${it.dup?'Serie repetida en tu plan. ':''}Arrastra para moverla de día u hora">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}</small>${it.r.manual?'<button class="cp" aria-label="Duplicar bloque" title="Duplicar bloque (Ctrl+D)">⧉</button>':''}<button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${it.dup?'Serie repetida en tu plan. ':''}${it.r.unc?'Horario por confirmar. ':''}Arrastra para moverla de día u hora">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?'<button class="cp" aria-label="Duplicar bloque" title="Duplicar bloque (Ctrl+D)">⧉</button>':''}<button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
     });
     if(showPv)h+=`<div class="ghost" style="left:${px(pv.s)}px;width:${(pv.e-pv.s)/36e5*PPH}px;top:${top+(nRows-1)*rowH}px"></div>`;
     const own=dayAll.filter(it=>it.s>=di.d0),hid=own.filter(it=>!(it.e>v0&&it.s<v1)).length,nm=own.filter(x=>x.r.manual).length,nr=own.length-nm,sum=own.length?`${nr} carrera${nr==1?'':'s'}${nm?` + ${nm} manual${nm>1?'es':''}`:''} · ${hhmm(new Date(own[0].s))}–${hhmm(new Date(Math.max(...own.map(x=>x.e))))}${hid?` · ${hid} fuera del rango horario`:''}`:'sin carreras';
@@ -528,7 +561,7 @@ function drawAgenda(){
     if(!its.length)h+='<p class="none">Sin carreras</p>';
     for(const it of its){
       const badge=it.r.manual?'<span class="lic M">✎</span>':`<span class="lic ${it.r.lic}" style="background:${col(it.r.lic)}">${esc(it.r.lic)}</span>`;
-      h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">⚠ solapa</span>':''}${it.dup?'<span class="flag r">↻ repetida</span>':''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">⚠ solapa</span>':''}${it.dup?'<span class="flag r">↻ repetida</span>':''}${it.r.unc?'<span class="flag r">⚠ horario por confirmar</span>':''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
     }
     h+='</section>';
   }
@@ -542,7 +575,7 @@ function agendaText(){
   if(!days.length)lines.push('Sin carreras planificadas esta semana.');
   for(const {di,its} of days){
     lines.push(dayLong(new Date(di.d0)));
-    for(const it of its)lines.push(`  ${hhmm(it.t)}–${endTxt(it,di)}  ${it.r.name} · ${it.r.manual?'personal · '+it.r.dur+' min':detTxt(it)}`);
+    for(const it of its)lines.push(`  ${hhmm(it.t)}–${endTxt(it,di)}  ${it.r.name} · ${it.r.manual?'personal · '+it.r.dur+' min':detTxt(it)}${it.r.unc?' ⚠ horario por confirmar':''}`);
     lines.push('');
   }
   return lines.join('\n').trimEnd()+'\n';
@@ -647,8 +680,9 @@ function refreshInfo(){
   setTimeout(updDot,0);
   if(!DATA.length){$('info').textContent='Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.';$('nohr').textContent='';return}
   const [a,b]=dataRange();
-  $('info').textContent=`Calendario: ${SRC} · ${DATA.length} series · del ${a} al ${b} · horas en tu zona horaria`;
-  $('nohr').textContent='Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: '+(DATA.filter(s=>!s.p).map(s=>s.n).join(', ')||'ninguna')+'.';
+  const nu=nUnc(),nf=nFixed();
+  $('info').textContent=`Calendario: ${SRC} · ${DATA.length} series · del ${a} al ${b} · horas en tu zona horaria`+(nu?` · ⚠ ${nu} series con horario por confirmar`:'')+(nf?` · ${nf} correcciones aplicadas`:'');
+  $('nohr').textContent='Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: '+(EFF.filter(s=>!s.p).map(s=>s.n).join(', ')||'ninguna')+'.';
 }
 function applyUi(){
   $('tgF').setAttribute('aria-expanded',ui.f);$('filters').hidden=!ui.f;
@@ -660,6 +694,7 @@ function applyUi(){
 }
 const flip=k=>()=>{ui[k]=!ui[k];applyUi();saveState();if(k==='s')drawTimeline()};
 $('tabT').onclick=()=>{ui.v='T';applyUi();saveState();drawTimeline()};
+document.querySelector('.vt').addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const b=ui.v==='T'?$('tabA'):$('tabT');b.click();b.focus()}});
 $('tabA').onclick=()=>{ui.v='A';applyUi();saveState()};
 $('tgM').onclick=flip('m');$('tgS').onclick=flip('s');$('hideSide').onclick=flip('s');
 $('tgF').onclick=()=>{ui.f=!ui.f;applyUi();saveState()};
@@ -673,7 +708,7 @@ function reconcilePlan(){
   let lost=0;const items=[...plan.entries()];plan.clear();
   for(const [k,v] of items){
     if(v.r.manual){plan.set(k,v);continue}
-    const ts=v.t.getTime(),hit=racesForDay(dayKey(v.t)).find(r=>r.name===v.r.name&&r.starts.some(s=>s.getTime()===ts));
+    const ts=v.t.getTime(),hit=racesForDay(dayKey(v.t)).find(r=>(r.name===v.r.name||r.name===v.r.name+' - Fixed')&&r.starts.some(s=>s.getTime()===ts));
     if(hit)plan.set(key(hit,v.t),{r:hit,t:v.t});else lost++;
   }
   return lost;
@@ -683,7 +718,7 @@ const USER='local',SKEY=`iracing-planner/${USER}/state`;
 let storageOK=true;
 function stateObj(){
   return {v:1,at:dayKey(new Date()),start:$('day').value,active,from:$('from').value,to:$('to').value,lic:$('lic').value,cat:$('cat').value,q:$('q').value,gap:$('gap').value,mseq,expanded:[...expanded],ui:{f:ui.f,d:ui.d,m:ui.m,s:ui.s,v:ui.v},
-    plan:[...plan.entries()].map(([k,v])=>({k,t:v.t.getTime(),r:{uid:v.r.uid,name:v.r.name,lic:v.r.lic,cat:v.r.cat,track:v.r.track,dur:v.r.dur,est:v.r.est,manual:!!v.r.manual}}))};
+    plan:[...plan.entries()].map(([k,v])=>({k,t:v.t.getTime(),r:{uid:v.r.uid,name:v.r.name,lic:v.r.lic,cat:v.r.cat,track:v.r.track,dur:v.r.dur,est:v.r.est,unc:!!v.r.unc,manual:!!v.r.manual}}))};
 }
 function saveState(){
   try{localStorage.setItem(SKEY,JSON.stringify(stateObj()))}
@@ -724,12 +759,50 @@ $('impfile').onchange=async e=>{
   }catch(err){msg.className='status msgerr';msg.textContent='No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido':err.message)+'.'}
 };
 function setData(d,name,save,sig,meta){
-  DATA=d;SRC=name;SIG=sig||'';META=meta||null;
+  DATA=d;SRC=name;SIG=sig||'';META=meta||null;rebuildEff();
   try{save?localStorage.setItem(KEY,JSON.stringify({data:d,name,sig:SIG,meta:META})):localStorage.removeItem(KEY)}catch(e){}
   const prevWeek=$('day').value;buildWeeks();if($('day').value!==prevWeek)active=defaultActive();
   const lost=reconcilePlan();
   applyTitle();refreshInfo();render();sc();return lost;
 }
+async function loadPatches(){
+  const msg=$('msg');let txt=null;
+  try{
+    const r=await fetch(PATCH_FILE,{cache:'no-cache'});
+    if(r.status===404)txt='{"series":{}}';
+    else if(r.ok){txt=await r.text();if(txt.trim().startsWith('<'))txt='{"series":{}}'}
+  }catch(e){}
+  if(txt===null)return;                                   // sin acceso: se conservan las correcciones guardadas
+  let j;try{j=JSON.parse(txt)}catch(e){msg.className='status msgerr';msg.textContent=`${PATCH_FILE} no es un JSON válido: se ignora.`;return}
+  if(!j||typeof j!=='object'||!j.series||typeof j.series!=='object')j={series:{}};
+  const same=JSON.stringify(j)===JSON.stringify(PATCH);
+  PATCH=j;
+  try{Object.keys(j.series).length?localStorage.setItem(PATCH_KEY,JSON.stringify(j)):localStorage.removeItem(PATCH_KEY)}catch(e){}
+  if(same)return;
+  rebuildEff();const lost=reconcilePlan();refreshInfo();render();
+  if(lost){msg.className='status';msg.textContent=`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió con las correcciones.`}
+}
+function buildTemplate(){
+  const series={};
+  for(const s of DATA){
+    const cur=(PATCH.series||{})[s.n];if(cur&&cur.confirmed===true)continue;
+    if(!s.p){series[s.n]={confirmed:false,weekly:[],_nota:'El PDF no da horas. Rellena weekly con pares ["Sat","19:00"] (hora UTC) y pon confirmed a true.'};continue}
+    if(s.p.inf&&s.p.k==='i'){
+      const e={confirmed:false,every:s.p.s,at:s.p.o};
+      if(s.p.s===120){e.hours=s.p.p?'odd':'even';e._nota='El PDF no indica si son horas pares o impares (se ha supuesto '+(s.p.p?'impares':'pares')+'). Comprueba y pon confirmed a true.'}
+      else e._nota='El PDF no indica los minutos exactos (se han supuesto). Comprueba y pon confirmed a true.';
+      series[s.n]=e;
+    }
+  }
+  return {version:1,_ayuda:'Horas en UTC. Cada serie solo se corrige si confirmed es true; con false se ignora. every: 30, 60 o 120 (minutos). at: minutos dentro de la hora. hours: even (pares) u odd (impares), solo con every 120. weekly: lista de [día, "HH:MM"] con días Mon..Sun.',series};
+}
+$('tpl').onclick=()=>{
+  const o=buildTemplate(),n=Object.keys(o.series).length,msg=$('msg');
+  if(!n){msg.className='status';msg.textContent='No hay series pendientes de confirmar.';return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.download=PATCH_FILE;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  msg.className='status';msg.textContent=`Plantilla descargada (${n} series). Edítala y colócala junto al HTML con el nombre ${PATCH_FILE}.`;
+};
 const PDF_NAME='SeasonSchedule.pdf';
 function fnv(u8){let h=2166136261;for(let i=0;i<u8.length;i++){h^=u8[i];h=Math.imul(h,16777619)}return (h>>>0).toString(16)+'-'+u8.length}
 async function parseBuffer(buf,onProgress){
@@ -745,7 +818,7 @@ async function loadCalendar(){
     const r=await fetch(PDF_NAME,{cache:'no-cache'});
     if(!r.ok)throw new Error(r.status===404?`no encuentro ${PDF_NAME} junto al HTML`:'error '+r.status);
     const buf=await r.arrayBuffer(),sig=fnv(new Uint8Array(buf));
-    if(DATA.length&&sig===SIG&&META&&META.w1)return;                       // el PDF no ha cambiado: se usa lo guardado
+    if(DATA.length&&sig===SIG&&META&&META.w1&&META.pv===PV)return;                       // el PDF no ha cambiado: se usa lo guardado
     msg.className='status';msg.textContent='Leyendo calendario…';
     const pr=await parseBuffer(buf,(p,n)=>{msg.textContent=`Leyendo calendario… página ${p} de ${n}`});
     const d=Array.isArray(pr)?pr:pr.data,meta=Array.isArray(pr)?null:pr.meta;
@@ -759,7 +832,7 @@ async function loadCalendar(){
 }
 $('colAll').onclick=()=>{expanded.clear();render()};
 $('expAll').onclick=()=>{shown.forEach(r=>expanded.add(r.name));render()};
-buildWeeks();
+rebuildEff();buildWeeks();
 const slots=end=>Array.from({length:end?97:96},(_,i)=>{const m=i*15;return `<option>${pad(Math.floor(m/60))}:${pad(m%60)}</option>`}).join('');
 ['from','mfrom','mto'].forEach(id=>$(id).innerHTML=slots(false));$('to').innerHTML=slots(true);
 $('from').value='16:00';$('to').value='24:00';$('mfrom').value='20:00';$('mto').value='21:00';
@@ -771,7 +844,7 @@ const sc=()=>{$('scroll').scrollLeft=0};
 addEventListener('resize',()=>drawTimeline());
 if(window.ResizeObserver)new ResizeObserver(()=>{const w=$('scroll').clientWidth;if(w&&Math.abs(w-lastW)>0.5)drawTimeline()}).observe($('scroll'));
 applyTitle();refreshInfo();render();sc();
-loadCalendar();
+(async()=>{await loadPatches();await loadCalendar()})();
 </script>
 </body>
 </html>
