@@ -75,6 +75,8 @@ h1::after{content:'';position:absolute;left:0;bottom:0;width:64px;height:3px;bor
 #side h2 button{font:16px/1 system-ui;padding:2px 8px}
 .sub{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .acts{display:flex;gap:6px}
+#q{flex:1 1 110px;min-width:0;padding:5px 8px;font-size:13px}
+#actday{white-space:nowrap}
 .ib{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #msg{flex:1 1 100%}
@@ -173,7 +175,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <label>Hasta<select id="to"></select></label>
   <label>Licencia<select id="lic"><option value="">Todas</option><option>R</option><option>D</option><option>C</option><option>B</option><option>A</option></select></label>
   <label>Categoría<select id="cat"><option value="">Todas</option><option value="OVAL">Oval</option><option value="SPORTS CAR">Sports car</option><option value="FORMULA CAR">Formula car</option><option value="DIRT OVAL">Dirt oval</option><option value="DIRT ROAD">Dirt road</option></select></label>
-  <label>Buscar<input type="search" id="q" placeholder="Serie o circuito"></label>
+  
   <label>Margen<select id="gap"><option value="0">Sin margen</option><option value="10" selected>10 min</option><option value="20">20 min</option><option value="30">30 min</option></select></label>
 <button class="ib" id="resetF" aria-label="Quitar todos los filtros" title="Quitar todos los filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h15l-6 7v6l-4 2v-8z"/><path d="M16 15l5 5M21 15l-5 5"/></svg></button>
 </div>
@@ -188,7 +190,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 
 <main>
   <section class="panel" id="side"><h2><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles</h2>
-    <div class="sub"><small id="actday" class="status"></small><span class="acts"><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
+    <div class="sub"><small id="actday" class="status"></small><input type="search" id="q" placeholder="Buscar serie o circuito" aria-label="Buscar serie o circuito"><span class="acts"><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
   <section class="panel" id="tl">
     <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT" aria-label="Línea temporal" title="Línea temporal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="10" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="9" y="10.2" width="12" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="5" y="15.4" width="9" height="3.6" rx="1.6" fill="currentColor" stroke="none"/></svg><span>Línea temporal</span></button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA" aria-label="Agenda" title="Agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7H20"/><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 12H20"/><circle cx="5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 17H20"/></svg><span>Agenda</span></button></div>
     <div class="tlbody" id="tlbody">
@@ -483,8 +485,8 @@ function render(){
   const di=dayInfo(active),k=di.key;
   renderTabs();
   $('actday').textContent=di.label;
-  const fs=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent,$('q').value.trim()&&'«'+$('q').value.trim()+'»'].filter(Boolean).join(' · ');
-  $('tgF').title='Filtros · '+fs;const dflt=!$('lic').value&&!$('cat').value&&!$('q').value.trim()&&$('from').value==='16:00'&&$('to').value==='24:00';$('fdot').hidden=dflt;$('resetF').disabled=dflt;
+  const fs=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent].filter(Boolean).join(' · ');
+  $('tgF').title='Filtros · '+fs;const fa=!!($('lic').value||$('cat').value);$('fdot').hidden=!fa;$('resetF').disabled=!(fa||$('q').value.trim());
   const q=$('q').value.trim().toLowerCase(), f=tmin($('from').value||'00:00'), to=tmin($('to').value||'24:00');
   let races=racesForDay(k).filter(r=>(!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(!q||(r.name+' '+r.track).toLowerCase().includes(q)));
   races.forEach(r=>r.vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to));
@@ -933,7 +935,7 @@ $('fixonly').onchange=renderFix;
 let fixOpener=null;
 function openFix(){fixOpener=document.activeElement;$('fixmsg').textContent='';renderFix();$('fixov').hidden=false;$('fixclose').focus()}
 function closeFix(){$('fixov').hidden=true;if(fixOpener&&fixOpener.focus)fixOpener.focus()}
-$('resetF').onclick=()=>{$('lic').value='';$('cat').value='';$('q').value='';$('from').value='16:00';$('to').value='24:00';render()};
+$('resetF').onclick=()=>{$('lic').value='';$('cat').value='';$('q').value='';render()};
 $('fixbtn').onclick=openFix;$('fixclose').onclick=closeFix;$('fixok').onclick=closeFix;
 $('fixov').addEventListener('click',e=>{if(e.target===$('fixov'))closeFix()});
 document.addEventListener('keydown',e=>{
