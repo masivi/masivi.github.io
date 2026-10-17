@@ -13,8 +13,8 @@
 --M:#9819FF;--R:#d9363e;--D:#e0791a;--C:#e6c619;--B:#2f9e55;--A:#2a6fdb}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1620;--panel:#182331;--ink:#e6edf5;--mute:#92a1b3;--line:#2a3a4d;--accent:#9819FF;--accent-t:#c48bff}}
 *{box-sizing:border-box}
-html{scrollbar-gutter:stable}
-body{overflow-x:hidden;margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;padding:16px}
+html,body{height:100%}
+body{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;padding:16px}
 h1,h2{margin:0;font-family:'Arial Narrow','Roboto Condensed',system-ui,sans-serif;letter-spacing:.01em}
 h1{font-size:clamp(19px,4.8vw,28px)}h2{font-size:19px;margin-bottom:8px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:10px 0 14px}
@@ -23,10 +23,14 @@ input,select,button{font:inherit;color:var(--ink);background:var(--panel);border
 button{cursor:pointer}:focus-visible{outline:2px solid var(--sec);outline-offset:2px}
 .status{font-size:13px;color:var(--mute)}
 .status b{color:var(--ink)}
-main{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:14px;align-items:start}
-@media(max-width:860px){main{grid-template-columns:1fr}#tl{order:-1}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
-#list{max-height:76vh;overflow:auto}
+body>*{flex:none}
+body>main{flex:1 1 0;min-height:0}
+main{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:14px;align-items:stretch}
+@media(max-width:860px){main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,3fr) minmax(0,2fr)}main.nolist{grid-template-rows:minmax(0,1fr)}#tl{order:-1}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.tlbody{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable}
+#sum{flex:none}
+#list{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable}
 .race{padding:10px 0;border-bottom:1px solid var(--line)}
 .race:last-child{border:0}.race .n{font-weight:600}.race .t{color:var(--mute);font-size:13px}
 .lic{display:inline-block;min-width:22px;text-align:center;font:700 13px Arial;color:#fff;border-radius:3px;padding:0 5px;margin-right:6px}
@@ -75,7 +79,7 @@ h1::after{content:'';position:absolute;left:0;bottom:0;width:64px;height:3px;bor
 .ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #msg{flex:1 1 100%}
 .vt{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 12px;padding:0 2px}
-.vt button{position:relative;display:flex;align-items:center;justify-content:center;width:58px;height:38px;padding:0;margin-bottom:-1px;border:1px solid var(--line);border-radius:10px 10px 0 0;background:rgba(127,127,127,.12);color:var(--mute)}
+.vt button{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;font:600 14px system-ui;margin-bottom:-1px;border:1px solid var(--line);border-radius:10px 10px 0 0;background:rgba(127,127,127,.12);color:var(--mute)}
 .vt button:hover{color:var(--ink)}
 .vt button[aria-selected=true]{z-index:1;background:var(--panel);color:var(--accent-t);border-bottom-color:var(--panel);box-shadow:inset 0 3px 0 var(--sec)}
 .vt svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -163,17 +167,19 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <section class="panel" id="side"><h2><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles</h2>
     <div class="sub"><small id="actday" class="status"></small><span class="acts"><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
   <section class="panel" id="tl">
-    <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT" aria-label="Línea temporal" title="Línea temporal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="10" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="9" y="10.2" width="12" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="5" y="15.4" width="9" height="3.6" rx="1.6" fill="currentColor" stroke="none"/></svg></button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA" aria-label="Agenda" title="Agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7H20"/><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 12H20"/><circle cx="5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 17H20"/></svg></button></div>
+    <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT" aria-label="Línea temporal" title="Línea temporal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="10" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="9" y="10.2" width="12" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="5" y="15.4" width="9" height="3.6" rx="1.6" fill="currentColor" stroke="none"/></svg><span>Línea temporal</span></button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA" aria-label="Agenda" title="Agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7H20"/><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 12H20"/><circle cx="5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 17H20"/></svg><span>Agenda</span></button></div>
+    <div class="tlbody" id="tlbody">
     <div id="viewT"><div id="scroll"><div id="days"></div></div></div>
     <div id="viewA" hidden>
       <div class="ahead"><button class="ib" id="copyA" aria-label="Copiar agenda" title="Copiar agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><span class="status" id="copymsg" role="status"></span></div>
       <div id="agenda"></div>
     </div>
-    <div id="sum"></div>
     <details><summary>Notas sobre los datos</summary>
       <p>Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación.</p>
       <p id="nohr"></p>
     </details>
+    </div>
+    <div id="sum"></div>
   </section>
 </main>
 <script>/**
@@ -557,8 +563,8 @@ function drawAgenda(){
   const days=agendaData(),today=dayKey(new Date());let h='',tot=0;
   for(const {di,its} of days){
     tot+=its.length;
-    h+=`<section class="ad ${its.length?'':'empty'}"><h3>${esc(dayLong(new Date(di.d0)))}${di.key===today?' <span class="hoy">hoy</span>':''}<small>${its.length?its.length+(its.length==1?' elemento':' elementos'):''}</small></h3>`;
-    if(!its.length)h+='<p class="none">Sin carreras</p>';
+    if(!its.length)continue;
+    h+=`<section class="ad"><h3>${esc(dayLong(new Date(di.d0)))}${di.key===today?' <span class="hoy">hoy</span>':''}<small>${its.length?its.length+(its.length==1?' elemento':' elementos'):''}</small></h3>`;
     for(const it of its){
       const badge=it.r.manual?'<span class="lic M">✎</span>':`<span class="lic ${it.r.lic}" style="background:${col(it.r.lic)}">${esc(it.r.lic)}</span>`;
       h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">⚠ solapa</span>':''}${it.dup?'<span class="flag r">↻ repetida</span>':''}${it.r.unc?'<span class="flag r">⚠ horario por confirmar</span>':''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
@@ -627,7 +633,7 @@ function dragSession(e,cfg){
     st.iv=setInterval(()=>{
       const ev=st.last,sr=$('scroll').getBoundingClientRect();let m=false;
       if(ev.clientX<sr.left+50){$('scroll').scrollLeft-=18;m=true}else if(ev.clientX>sr.right-50){$('scroll').scrollLeft+=18;m=true}
-      if(ev.clientY<60){scrollBy(0,-14);m=true}else if(ev.clientY>innerHeight-60){scrollBy(0,14);m=true}
+      const tb=$('tlbody'),tr=tb.getBoundingClientRect();if(ev.clientY<tr.top+50){tb.scrollTop-=14;m=true}else if(ev.clientY>tr.bottom-50){tb.scrollTop+=14;m=true}
       if(m)update();
     },30);
   };
