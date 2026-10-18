@@ -152,6 +152,7 @@ select.curwk{font-weight:700;color:var(--accent-t);border-color:var(--sec)}
 .dfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 14px}
 input[type=checkbox]{accent-color:var(--sec);width:16px;height:16px}
 @media(max-width:560px){.fr{grid-template-columns:auto minmax(0,1fr)}.fc{grid-column:1/-1}.fc input[type=text]{width:100%}}
+.oh{font:700 11px system-ui;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px;padding-top:10px;border-top:1px solid var(--line)}
 .unc{color:#b36b00;font-size:13px;margin-left:6px;cursor:pointer;flex:none;border-radius:3px}
 .unc:hover,.unc:focus-visible{transform:scale(1.25)}
 .flag[data-fix]{cursor:pointer;text-decoration:underline dotted}@media (prefers-color-scheme:dark){.unc{color:#f2a900}}
@@ -484,6 +485,33 @@ function toggle(r,t){const k=key(r,t);plan.has(k)?plan.delete(k):plan.set(k,{r,t
 const mod=d=>d.getHours()*60+d.getMinutes();
 const tmin=v=>{const [h,m]=v.split(':').map(Number);return h*60+m};
 
+function otherDaysBlock(q,f,to,here){
+  if(!q)return null;
+  const map=new Map();
+  for(let i=0;i<7;i++){
+    if(i===active)continue;
+    const di2=dayInfo(i);
+    for(const r of racesForDay(di2.key)){
+      if(here.has(r.name))continue;
+      if(!((!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(r.name+' '+r.track).toLowerCase().includes(q)))continue;
+      const vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to);if(!vis.length)continue;
+      const e=map.get(r.name)||{r,days:[]};
+      if(!e.days.some(d=>d.i===i))e.days.push({i,d:new Date(di2.d0),n:vis.length,first:vis[0]});
+      map.set(r.name,e);
+    }
+  }
+  if(!map.size)return null;
+  const wrap=document.createElement('div');
+  wrap.innerHTML='<div class="oh">En otros días de esta semana</div>';
+  [...map.values()].sort((a,b)=>ORD[a.r.lic]-ORD[b.r.lic]||a.r.name.localeCompare(b.r.name)).forEach(({r,days})=>{
+    const el=document.createElement('div');el.className='race other';
+    el.innerHTML=`<div class="n"><span class="lic ${r.lic}" style="background:${col(r.lic)}">${esc(r.lic)}</span>${esc(r.name)}</div><div class="t">${esc(r.track)}</div>`;
+    const box=document.createElement('div');box.className='times';
+    days.sort((a,b)=>a.i-b.i).forEach(x=>{const b=document.createElement('button');b.textContent=shortDay(x.d);b.title=`Ver ${shortDay(x.d)}: ${x.n} salida${x.n>1?'s':''} desde las ${hhmm(x.first)}`;b.onclick=()=>setActive(x.i);box.appendChild(b)});
+    el.appendChild(box);wrap.appendChild(el);
+  });
+  return wrap;
+}
 function render(){
   if(!$('day').value) return;
   applyTitle();
@@ -524,6 +552,7 @@ function render(){
     }
     el.querySelector('.rb').appendChild(box); list.appendChild(el);
   }
+  {const ob=otherDaysBlock(q,f,to,new Set(races.map(r=>r.name)));if(ob)list.appendChild(ob)}
   drawTimeline();
   drawAgenda();
   saveState();
