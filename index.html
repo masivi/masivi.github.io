@@ -152,7 +152,9 @@ select.curwk{font-weight:700;color:var(--accent-t);border-color:var(--sec)}
 .dfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 14px}
 input[type=checkbox]{accent-color:var(--sec);width:16px;height:16px}
 @media(max-width:560px){.fr{grid-template-columns:auto minmax(0,1fr)}.fc{grid-column:1/-1}.fc input[type=text]{width:100%}}
-.unc{color:#b36b00;font-size:13px;margin-left:6px;cursor:help;flex:none}@media (prefers-color-scheme:dark){.unc{color:#f2a900}}
+.unc{color:#b36b00;font-size:13px;margin-left:6px;cursor:pointer;flex:none;border-radius:3px}
+.unc:hover,.unc:focus-visible{transform:scale(1.25)}
+.flag[data-fix]{cursor:pointer;text-decoration:underline dotted}@media (prefers-color-scheme:dark){.unc{color:#f2a900}}
 .blk.past{background:var(--past)!important;color:#f1f4f8!important;opacity:.82}
 .blk.dup{box-shadow:inset 0 0 0 3px #f2a900}
 .amb{color:#b36b00;font-weight:600}@media (prefers-color-scheme:dark){.amb{color:#f2a900}}
@@ -505,8 +507,10 @@ function render(){
     const ns=[...plan.values()].filter(v=>v.r.uid===r.uid).length;
     const other=[...plan.values()].filter(v=>!v.r.manual&&v.r.name===r.name&&dayKey(v.t)!==k).sort((a,b)=>a.t-b.t);
     const otherTxt=other.map(v=>shortDay(v.t)+' '+hhmm(v.t)).join(', ');
-    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="Arrastra al plan">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?'<span class="unc" title="Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto)">⚠</span>':''}${ns?`<span class="cnt">${ns} en plan</span>`:other.length?`<span class="cnt amb" title="Ya en tu plan: ${esc(otherTxt)}">↻ repetida</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">↻ Esta serie ya está en tu plan: ${esc(otherTxt)}</div>`:''}</div>`;
+    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="Arrastra al plan">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo" aria-label="Confirmar el horario de ${esc(r.name)}">⚠</span>`:''}${ns?`<span class="cnt">${ns} en plan</span>`:other.length?`<span class="cnt amb" title="Ya en tu plan: ${esc(otherTxt)}">↻ repetida</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">↻ Esta serie ya está en tu plan: ${esc(otherTxt)}</div>`:''}</div>`;
     const hd=el.querySelector('.rh');
+    const uw=el.querySelector('.unc');
+    if(uw){uw.onpointerdown=e=>e.stopPropagation();uw.onclick=e=>{e.stopPropagation();openFix(r.name)};uw.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openFix(r.name)}}}
     hd.onpointerdown=e=>{if(e.button>0)return;if(e.pointerType==='touch'&&!e.target.closest('.grip'))return;startNameDrag(e,r,hd)};
     hd.onclick=()=>{if(suppress)return;const now=el.classList.toggle('c');hd.setAttribute('aria-expanded',!now);now?expanded.delete(r.name):expanded.add(r.name);saveState()};
     const box=document.createElement('div'); box.className='times';
@@ -611,12 +615,13 @@ function drawAgenda(){
     h+=`<section class="ad"><h3>${esc(dayLong(new Date(di.d0)))}${di.key===today?' <span class="hoy">hoy</span>':''}<small>${its.length?its.length+(its.length==1?' elemento':' elementos'):''}</small></h3>`;
     for(const it of its){
       const badge=it.r.manual?'<span class="lic M">✎</span>':`<span class="lic ${it.r.lic}" style="background:${col(it.r.lic)}">${esc(it.r.lic)}</span>`;
-      h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">⚠ solapa</span>':''}${it.dup?'<span class="flag r">↻ repetida</span>':''}${it.r.unc?'<span class="flag r">⚠ horario por confirmar</span>':''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">⚠ solapa</span>':''}${it.dup?'<span class="flag r">↻ repetida</span>':''}${it.r.unc?`<span class="flag r" data-fix="${esc(it.r.name)}" role="button" tabindex="0" title="Confirmar el horario de esta serie">⚠ horario por confirmar</span>`:''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
     }
     h+='</section>';
   }
   $('agenda').innerHTML=tot?h:'<p class="none" style="padding:14px 0">Todavía no has planificado nada esta semana. Añade carreras desde la lista o crea un bloque personalizado.</p>';
   $('agenda').querySelectorAll('.x2').forEach(b=>b.onclick=()=>{plan.delete(b.dataset.k);render()});
+  $('agenda').querySelectorAll('[data-fix]').forEach(b=>{b.onclick=()=>openFix(b.dataset.fix);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFix(b.dataset.fix)}}});
 }
 function agendaText(){
   const days=agendaData().filter(d=>d.its.length),a=$('day').value;
@@ -873,6 +878,7 @@ function parseSlotsTxt(txt){
   return out.length?out:null;
 }
 const slotsTxt=w=>w.map(([d,tm])=>DAYS_ES[d]+' '+tm).join(', ');
+let fixOnly=null;
 const filePatched=n=>((PATCH.series||{})[n]||{}).confirmed===true;
 const fixItems=()=>DATA.filter(s=>!s.p||s.p.inf||(VAL.series||{})[s.n]||filePatched(s.n)).sort((a,b)=>a.n.localeCompare(b.n));
 function persistVal(){try{Object.keys(VAL.series).length?localStorage.setItem(VAL_KEY,JSON.stringify(VAL)):localStorage.removeItem(VAL_KEY)}catch(e){}}
@@ -911,7 +917,7 @@ function fixCount(){
 function renderFix(){
   const only=$('fixonly').checked;
   const q=$('fixq').value.trim().toLowerCase();
-  const items=fixItems().filter(s=>(!only||!((VAL.series||{})[s.n]||filePatched(s.n)))&&(!q||s.n.toLowerCase().includes(q)));
+  const items=fixItems().filter(s=>(!only||!((VAL.series||{})[s.n]||filePatched(s.n)))&&(fixOnly?s.n===fixOnly:(!q||s.n.toLowerCase().includes(q))));
   $('fixbody').innerHTML=items.length?items.map(fixRow).join(''):`<p class="none" style="padding:16px 0">${q?'Ninguna serie coincide con la búsqueda.':'No quedan horarios por confirmar.'}</p>`;
   fixCount();
 }
@@ -936,7 +942,7 @@ $('fixbody').addEventListener('change',e=>{
   msg.textContent=(entry?'Guardado. ':'Validación quitada. ')+(lost?`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
 });
 $('fixonly').onchange=renderFix;
-$('fixq').oninput=renderFix;
+$('fixq').oninput=()=>{fixOnly=null;renderFix()};
 $('fixall').onclick=()=>{
   const rows=[...$('fixbody').querySelectorAll('.fr')].filter(r=>!r.classList.contains('ok')&&!r.querySelector('.fcv').disabled),msg=$('fixmsg');
   if(!rows.length){msg.textContent='No hay series pendientes en la lista.';return}
@@ -957,7 +963,10 @@ $('fixall').onclick=()=>{
   msg.textContent=`${done} validada${done==1?'':'s'}.`+(skip?` ${skip} sin validar: faltan las horas.`:'')+(lost?` ${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
 };
 let fixOpener=null;
-function openFix(){fixOpener=document.activeElement;$('fixmsg').textContent='';$('fixq').value='';renderFix();$('fixov').hidden=false;$('fixclose').focus()}
+function openFix(name){
+  fixOpener=document.activeElement;$('fixmsg').textContent='';
+  fixOnly=typeof name==='string'?name:null;$('fixq').value=fixOnly||'';if(fixOnly)$('fixonly').checked=false;
+  renderFix();$('fixov').hidden=false;$('fixclose').focus()}
 function closeFix(){$('fixov').hidden=true;if(fixOpener&&fixOpener.focus)fixOpener.focus()}
 $('resetF').onclick=()=>{$('lic').value='';$('cat').value='';$('q').value='';render()};
 $('fixbtn').onclick=openFix;$('fixclose').onclick=closeFix;$('fixok').onclick=closeFix;
