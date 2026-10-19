@@ -128,6 +128,11 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 @keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--ter),0 0 14px var(--ter)}100%{box-shadow:none}}
 .blk.flash{animation:flash 1.6s ease-out}
 .dot.bad{background:var(--bad)}
+.lang{display:inline-flex;align-items:center;gap:6px;margin-left:6px;padding-left:12px;border-left:1px solid var(--line)}
+.lg{width:42px;height:34px;padding:6px 7px;display:flex;align-items:center;justify-content:center;opacity:.5;filter:grayscale(.55)}
+.lg svg{width:100%;height:auto;display:block;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+.lg:hover{opacity:1}
+.lg[aria-pressed=true]{opacity:1;filter:none;border-color:var(--sec);box-shadow:inset 0 -3px 0 var(--ter)}
 .ib{position:relative}.ib[disabled]{opacity:.35;cursor:default}.ib[disabled]:hover{border-color:var(--line)}
 .bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;border-radius:9px;background:var(--ter);color:#0f1620;font:700 11px/18px system-ui;text-align:center;padding:0 4px}
 option{font-weight:400;color:var(--ink);background:var(--panel)}
@@ -173,6 +178,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <button class="tg ic" id="tgF" aria-expanded="false" aria-controls="filters" aria-label="Filtros" title="Filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg><i class="dot" id="fdot" hidden></i></button>
   <button class="tg ic" id="tgD" aria-expanded="false" aria-controls="datapanel" aria-label="Datos" title="Datos"><i class="dot bad" id="ddot" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 12h16M10 7.5h4M10 16.5h4"/></svg></button>
   <button class="tg ic" id="tgM" aria-expanded="false" aria-controls="custompanel" aria-label="Crear bloque personalizado" title="Bloque personalizado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="3"/><path d="M12 9.5v5M9.5 12h5"/></svg></button>
+  <span class="lang" role="group" aria-label="Idioma / Language"><button class="lg" id="lgES" type="button" aria-pressed="true" title="Español" aria-label="Español"><svg viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" fill="#AA151B"/><rect y="4" width="24" height="8" fill="#F1BF00"/></svg></button><button class="lg" id="lgEN" type="button" aria-pressed="false" title="English" aria-label="English"><svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="ukA"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="ukB"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#ukA)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#ukB)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg></button></span>
 </div>
 </div>
 <div class="bar" id="filters" hidden>
@@ -408,6 +414,36 @@ const pad=n=>String(n).padStart(2,'0');
 const hhmm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
 const dayKey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ===== Idioma (español por defecto; se recuerda la elección) ===== */
+const LANGKEY='iracing-planner-lang';
+let LANG='es',appReady=false;
+try{const l=localStorage.getItem(LANGKEY);if(l==='en'||l==='es')LANG=l}catch(e){}
+const LOC=()=>LANG==='en'?'en-GB':'es-ES';
+const EN={"Mostrar u ocultar la lista de carreras": "Show or hide the race list", "Lista de carreras": "Race list", "Filtros": "Filters", "Datos": "Data", "Crear bloque personalizado": "Create custom block", "Bloque personalizado": "Custom block", "Quitar todos los filtros": "Clear all filters", "Exportar plan": "Export plan", "Exportar plan: descarga tu plan y tus ajustes como archivo": "Export plan: download your plan and settings as a file", "Importar plan": "Import plan", "Importar plan: carga un plan exportado desde otro navegador": "Import plan: load a plan exported from another browser", "Vaciar plan": "Clear plan", "Ej. Cena, entrenamiento…": "E.g. Dinner, workout…", "Ocultar la lista": "Hide the list", "Buscar serie o circuito": "Search series or track", "Contraer todo": "Collapse all", "Expandir todo": "Expand all", "Línea temporal": "Timeline", "Agenda": "Agenda", "Copiar agenda": "Copy agenda", "Descargar calendario (.ics)": "Download calendar (.ics)", "Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook": "Download calendar (.ics) for Google Calendar, Apple Calendar or Outlook", "Cerrar": "Close", "Buscar serie": "Search series", "Valida todas las series pendientes de la lista, con los valores que se ven": "Validates all pending series in the list, using the values shown", "Validar todo": "Validate all", "Confirmar horarios": "Confirm schedules", "Semana (martes a lunes)": "Week (Tuesday to Monday)", "Desde": "From", "Hasta": "To", "Licencia": "License", "Categoría": "Category", "Margen": "Margin", "Día": "Day", "Inicio": "Start", "Fin": "End", "Descripción": "Description", "Todas": "All", "Sin margen": "No margin", "Añadir bloque": "Add block", "Carreras disponibles": "Available races", "Notas sobre los datos": "Notes on the data", "Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación.": "Block length = race length + 10 min (qualifying and start). Races defined by laps are marked “≈”: the PDF gives no lap time, so it is an estimate.", "El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC.": "The PDF does not say what time these series start, so it has been assumed. Check the real schedule, choose and tick <b>Validated</b>: it is saved instantly and applied to the list and your plan. Times are UTC.", "Solo pendientes": "Pending only", "Validado": "Validated", "Lun": "Mon", "Mar": "Tue", "Mié": "Wed", "Jue": "Thu", "Vie": "Fri", "Sáb": "Sat", "Dom": "Sun", "En otros días de esta semana": "On other days this week", "Ver {0}: {1} salidas desde las {2}": "View {0}: {1} starts from {2}", "Ver {0}: {1} salida desde las {2}": "View {0}: {1} start from {2}", "licencia {0}": "license {0}", "Aún no hay calendario: coloca SeasonSchedule.pdf junto a este archivo y recarga la página.": "No calendar yet: place SeasonSchedule.pdf next to this file and reload the page.", "No hay carreras con esos filtros para este día.": "No races match these filters on this day.", "Arrastra al plan": "Drag to your plan", "Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo": "Schedule to confirm: the PDF does not say what time it starts (assumed). Click to confirm", "Confirmar el horario de {0}": "Confirm the schedule of {0}", "{0} en plan": "{0} in plan", "Ya en tu plan: {0}": "Already in your plan: {0}", "↻ repetida": "↻ repeated", "↻ Esta serie ya está en tu plan: {0}": "↻ This series is already in your plan: {0}", "Duplicar bloque": "Duplicate block", "Duplicar bloque (Ctrl+D)": "Duplicate block (Ctrl+D)", "Quitar del plan": "Remove from plan", "{0} carrera": "{0} race", "{0} carreras": "{0} races", "{0} manual": "{0} manual", "{0} manuales": "{0} manual", "{0} fuera del rango horario": "{0} outside the time range", "sin carreras": "no races", "Ver las carreras de este día": "Show the races for this day", "carrera": "race", "carreras": "races", "manual": "manual", "manuales": "manual", "de carrera": "racing", "Elige un día y pulsa una hora de la lista para añadir la carrera a tu plan.": "Pick a day and click a time in the list to add the race to your plan.", "{0} carreras se solapan (en rojo)": "{0} races overlap (in red)", "↻ Series repetidas:": "↻ Repeated series:", "Indica una hora de inicio y otra de fin distintas.": "Enter different start and end times.", "Bloque manual": "Manual block", "Bloque personal": "Personal block", "hoy": "today", "{0} elemento": "{0} item", "{0} elementos": "{0} items", "⚠ solapa": "⚠ overlaps", "⚠ horario por confirmar": "⚠ schedule to confirm", "Confirmar el horario de esta serie": "Confirm the schedule of this series", "Todavía no has planificado nada esta semana. Añade carreras desde la lista o crea un bloque personalizado.": "You haven't planned anything this week yet. Add races from the list or create a custom block.", "Horas en": "Times in", "Sin carreras planificadas esta semana.": "No races planned this week.", "personal": "personal", "horario por confirmar": "schedule to confirm", "Horario por confirmar": "Schedule to confirm", "min de carrera": "min of racing", "Personal": "Personal", "No hay nada que descargar esta semana": "Nothing to download this week", "Calendario descargado ({0} evento)": "Calendar downloaded ({0} event)", "Calendario descargado ({0} eventos)": "Calendar downloaded ({0} events)", "Agenda copiada ✓": "Agenda copied ✓", "No se pudo copiar": "Could not copy", "Sin carrera de esta serie este día": "No race of this series on this day", "suelta en el día y la hora": "drop on the day and time", "Semana {0}": "Week {0}", "Semana actual": "Current week", "Planificador semanal iRacing": "iRacing Weekly Planner", "Confirmar horarios ({0} pendientes)": "Confirm schedules ({0} pending)", "Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.": "No calendar. Place SeasonSchedule.pdf next to this file and reload the page.", "Calendario: {0} · {1} series · del {2} al {3} · horas en tu zona horaria": "Calendar: {0} · {1} series · from {2} to {3} · times in your time zone", "{0} series con horario por confirmar": "{0} series with schedule to confirm", "{0} horario validado": "{0} schedule validated", "{0} horarios validados": "{0} schedules validated", "Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: {0}.": "Series without specific times in the PDF (they only say “timeslots per week”), so they do not appear: {0}.", "ninguna": "none", "Datos · hay un aviso": "Data · there is a notice", "Este navegador no permite guardar tu plan (almacenamiento bloqueado).": "This browser does not allow saving your plan (storage blocked).", "Plan exportado ({0} bloque).": "Plan exported ({0} block).", "Plan exportado ({0} bloques).": "Plan exported ({0} blocks).", "el archivo no es un plan exportado por esta aplicación": "the file is not a plan exported by this app", "Importar sustituirá tu plan y tus ajustes actuales. ¿Continuar?": "Importing will replace your current plan and settings. Continue?", "Plan importado ({0} bloque).": "Plan imported ({0} block).", "Plan importado ({0} bloques).": "Plan imported ({0} blocks).", "{0} carreras no existen en el calendario actual y se han omitido.": "{0} races do not exist in the current calendar and were skipped.", "{0} carrera no existe en el calendario actual y se ha omitido.": "{0} race does not exist in the current calendar and was skipped.", "No se pudo importar: {0}.": "Could not import: {0}.", "el archivo no es un JSON válido": "the file is not valid JSON", "{0} no es un JSON válido: se ignora.": "{0} is not valid JSON: ignored.", "{0} carreras de tu plan se han quitado porque su horario cambió con las correcciones.": "{0} races were removed from your plan because their schedule changed with the corrections.", "{0} carrera de tu plan se ha quitado porque su horario cambió con las correcciones.": "{0} race was removed from your plan because its schedule changed with the corrections.", "El PDF solo indica «timeslots por semana», sin horas": "The PDF only says “timeslots per week”, with no times", "Horario semanal": "Weekly schedule", "Cada 2 horas, a los :{0}": "Every 2 hours, at :{0}", "Cada hora": "Every hour", "Cada 30 minutos": "Every 30 minutes", "Horas de salida (UTC)": "Start times (UTC)", "Mar 19:00, Sáb 12:30": "Tue 19:00, Sat 12:30", "Horas": "Hours", "Pares": "Even", "Impares": "Odd", "Minutos": "Minutes", ":00 y :30": ":00 and :30", ":15 y :45": ":15 and :45", "Minuto": "Minute", "fijado en SchedulePatches.json": "set in SchedulePatches.json", "Validadas {0} de {1}": "Validated {0} of {1}", "Ninguna serie coincide con la búsqueda.": "No series match the search.", "No quedan horarios por confirmar.": "No schedules left to confirm.", "No entiendo esas horas. Escribe, por ejemplo: {0}": "I don't understand those times. Write, for example: {0}", "Guardado.": "Saved.", "Validación quitada.": "Validation removed.", "{0} carreras de tu plan se han quitado porque su horario cambió.": "{0} races were removed from your plan because their schedule changed.", "{0} carrera de tu plan se ha quitado porque su horario cambió.": "{0} race was removed from your plan because its schedule changed.", "No hay series pendientes en la lista.": "There are no pending series in the list.", "{0} sin validar: faltan las horas.": "{0} not validated: times missing.", "Se validarán {0} series con los valores que ves en la lista": "Will validate {0} series with the values shown in the list", "Se validará {0} serie con los valores que ves en la lista": "Will validate {0} series with the values shown in the list", "({0} se quedan pendientes por falta de horas)": "({0} stay pending for lack of times)", ". ¿Continuar?": ". Continue?", "{0} validada.": "{0} validated.", "{0} validadas.": "{0} validated.", "{0} carreras de tu plan ya no existen en el nuevo calendario y se han quitado.": "{0} races in your plan no longer exist in the new calendar and were removed.", "{0} carrera de tu plan ya no existe en el nuevo calendario y se ha quitado.": "{0} race in your plan no longer exists in the new calendar and was removed.", "el lector de PDF no está disponible": "the PDF reader is not available", "no encuentro {0} junto al HTML": "can't find {0} next to the HTML", "error {0}": "error {0}", "Leyendo calendario…": "Reading calendar…", "Leyendo calendario… página {0} de {1}": "Reading calendar… page {0} of {1}", "no reconozco el formato del calendario de iRacing": "I don't recognize the iRacing calendar format", "Calendario actualizado: {0} series, {1} semanas.": "Calendar updated: {0} series, {1} weeks.", "El navegador no permite leer {0} si el HTML se abre con doble clic: sirve la carpeta desde un servidor web (p. ej. «python -m http.server») o súbela a tu alojamiento.": "The browser does not allow reading {0} when the HTML is opened by double-click: serve the folder from a web server (e.g. “python -m http.server”) or upload it to your hosting.", "No se pudo leer {0}: {1}.": "Could not read {0}: {1}.", "Se usa el último calendario guardado.": "Using the last saved calendar."};
+const t=(k,...a)=>{const s=LANG==='en'&&EN[k]!==undefined?EN[k]:k;return a.length?s.replace(/\{(\d+)\}/g,(m,i)=>a[+i]):s};
+const STATIC=[["#tgS", "aria-label", "Mostrar u ocultar la lista de carreras"], ["#tgS", "title", "Lista de carreras"], ["#tgF", "aria-label", "Filtros"], ["#tgD", "aria-label", "Datos"], ["#tgM", "aria-label", "Crear bloque personalizado"], ["#tgM", "title", "Bloque personalizado"], ["#resetF", "aria-label", "Quitar todos los filtros"], ["#resetF", "title", "Quitar todos los filtros"], ["#exp", "aria-label", "Exportar plan"], ["#exp", "title", "Exportar plan: descarga tu plan y tus ajustes como archivo"], ["#imp", "aria-label", "Importar plan"], ["#imp", "title", "Importar plan: carga un plan exportado desde otro navegador"], ["#clear", "aria-label", "Vaciar plan"], ["#clear", "title", "Vaciar plan"], ["#mdesc", "placeholder", "Ej. Cena, entrenamiento…"], ["#hideSide", "aria-label", "Ocultar la lista"], ["#hideSide", "title", "Ocultar la lista"], ["#q", "placeholder", "Buscar serie o circuito"], ["#q", "aria-label", "Buscar serie o circuito"], ["#colAll", "aria-label", "Contraer todo"], ["#colAll", "title", "Contraer todo"], ["#expAll", "aria-label", "Expandir todo"], ["#expAll", "title", "Expandir todo"], ["#tabT", "aria-label", "Línea temporal"], ["#tabT", "title", "Línea temporal"], ["#tabT span", "text", "Línea temporal"], ["#tabA", "aria-label", "Agenda"], ["#tabA", "title", "Agenda"], ["#tabA span", "text", "Agenda"], ["#copyA", "aria-label", "Copiar agenda"], ["#copyA", "title", "Copiar agenda"], ["#icsA", "aria-label", "Descargar calendario (.ics)"], ["#icsA", "title", "Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook"], ["#fixclose", "aria-label", "Cerrar"], ["#fixclose", "title", "Cerrar"], ["#fixok", "text", "Cerrar"], ["#fixq", "placeholder", "Buscar serie"], ["#fixq", "aria-label", "Buscar serie"], ["#fixall", "title", "Valida todas las series pendientes de la lista, con los valores que se ven"], ["#fixall", "lasttext", "Validar todo"], ["#fixt", "text", "Confirmar horarios"], ["#day", "label", "Semana (martes a lunes)"], ["#from", "label", "Desde"], ["#to", "label", "Hasta"], ["#lic", "label", "Licencia"], ["#cat", "label", "Categoría"], ["#gap", "label", "Margen"], ["#mday", "label", "Día"], ["#mfrom", "label", "Inicio"], ["#mto", "label", "Fin"], ["#mdesc", "label", "Descripción"], ["#lic option:first-child", "text", "Todas"], ["#cat option:first-child", "text", "Todas"], ["#gap option:first-child", "text", "Sin margen"], ["#madd", "text", "Añadir bloque"], ["#side h2", "lasttext", "Carreras disponibles"], ["details summary", "text", "Notas sobre los datos"], ["#tlbody details p:first-of-type", "html", "Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación."], [".dh2 p.status", "html", "El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC."], [".fonly", "lasttext", "Solo pendientes"]];
+function applyStatic(){
+  for(const [sel,prop,key] of STATIC){
+    const els=document.querySelectorAll(sel);
+    els.forEach(el=>{
+      const v=t(key);
+      if(prop==='text')el.textContent=v;
+      else if(prop==='html')el.innerHTML=v;
+      else if(prop==='label'){const lab=el.closest('label');const n=lab&&[...lab.childNodes].find(x=>x.nodeType===3&&x.nodeValue.trim());if(n)n.nodeValue=v}
+      else if(prop==='lasttext'){const n=[...el.childNodes].reverse().find(x=>x.nodeType===3&&x.nodeValue.trim());if(n)n.nodeValue=(/^\s/.test(n.nodeValue)?' ':'')+v}
+      else el.setAttribute(prop,v);
+    });
+  }
+}
+function setLang(l){
+  LANG=l;try{localStorage.setItem(LANGKEY,l)}catch(e){}
+  document.documentElement.lang=l;
+  $('lgES').setAttribute('aria-pressed',l==='es');$('lgEN').setAttribute('aria-pressed',l==='en');
+  applyStatic();
+  if(appReady){delete $('mday').dataset.sig;buildWeeks();applyTitle();refreshInfo();render();if(!$('fixov').hidden)renderFix()}
+}
+$('lgES').onclick=()=>setLang('es');$('lgEN').onclick=()=>setLang('en');
+
 const col=l=>'var(--'+l+')';
 const ORD={R:0,D:1,C:2,B:3,A:4};
 const ui={f:false,d:false,m:false,s:true,v:'T'};
@@ -502,12 +538,12 @@ function otherDaysBlock(q,f,to,here){
   }
   if(!map.size)return null;
   const wrap=document.createElement('div');
-  wrap.innerHTML='<div class="oh">En otros días de esta semana</div>';
+  wrap.innerHTML='<div class="oh">'+esc(t('En otros días de esta semana'))+'</div>';
   [...map.values()].sort((a,b)=>ORD[a.r.lic]-ORD[b.r.lic]||a.r.name.localeCompare(b.r.name)).forEach(({r,days})=>{
     const el=document.createElement('div');el.className='race other';
     el.innerHTML=`<div class="n"><span class="lic ${r.lic}" style="background:${col(r.lic)}">${esc(r.lic)}</span>${esc(r.name)}</div><div class="t">${esc(r.track)}</div>`;
     const box=document.createElement('div');box.className='times';
-    days.sort((a,b)=>a.i-b.i).forEach(x=>{const b=document.createElement('button');b.textContent=shortDay(x.d);b.title=`Ver ${shortDay(x.d)}: ${x.n} salida${x.n>1?'s':''} desde las ${hhmm(x.first)}`;b.onclick=()=>setActive(x.i);box.appendChild(b)});
+    days.sort((a,b)=>a.i-b.i).forEach(x=>{const b=document.createElement('button');b.textContent=shortDay(x.d);b.title=t(x.n>1?'Ver {0}: {1} salidas desde las {2}':'Ver {0}: {1} salida desde las {2}',shortDay(x.d),x.n,hhmm(x.first));b.onclick=()=>setActive(x.i);box.appendChild(b)});
     el.appendChild(box);wrap.appendChild(el);
   });
   return wrap;
@@ -518,16 +554,16 @@ function render(){
   const di=dayInfo(active),k=di.key;
   renderTabs();
   $('actday').textContent=di.label;
-  const fs=[$('from').value+'–'+$('to').value,$('lic').value&&'licencia '+$('lic').value,$('cat').value&&$('cat').selectedOptions[0].textContent].filter(Boolean).join(' · ');
-  $('tgF').title='Filtros · '+fs;const fa=!!($('lic').value||$('cat').value);$('fdot').hidden=!fa;$('resetF').disabled=!(fa||$('q').value.trim());
+  const fs=[$('from').value+'–'+$('to').value,$('lic').value&&t('licencia {0}',$('lic').value),$('cat').value&&$('cat').selectedOptions[0].textContent].filter(Boolean).join(' · ');
+  $('tgF').title=t('Filtros')+' · '+fs;const fa=!!($('lic').value||$('cat').value);$('fdot').hidden=!fa;$('resetF').disabled=!(fa||$('q').value.trim());
   const q=$('q').value.trim().toLowerCase(), f=tmin($('from').value||'00:00'), to=tmin($('to').value||'24:00');
   let races=racesForDay(k).filter(r=>(!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(!q||(r.name+' '+r.track).toLowerCase().includes(q)));
   races.forEach(r=>r.vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to));
   races=races.filter(r=>r.vis.length).sort((a,b)=>ORD[a.lic]-ORD[b.lic]||a.name.localeCompare(b.name));
   shown=races;
   const list=$('list'); list.innerHTML='';
-  if(!DATA.length) list.innerHTML='<div class="empty">Aún no hay calendario: coloca SeasonSchedule.pdf junto a este archivo y recarga la página.</div>';
-  else if(!races.length) list.innerHTML='<div class="empty">No hay carreras con esos filtros para este día.</div>';
+  if(!DATA.length) list.innerHTML='<div class="empty">'+esc(t('Aún no hay calendario: coloca SeasonSchedule.pdf junto a este archivo y recarga la página.'))+'</div>';
+  else if(!races.length) list.innerHTML='<div class="empty">'+esc(t('No hay carreras con esos filtros para este día.'))+'</div>';
   $('list').dataset.day=k;
   for(const r of races){
     const el=document.createElement('div'),c=!expanded.has(r.name);
@@ -535,7 +571,7 @@ function render(){
     const ns=[...plan.values()].filter(v=>v.r.uid===r.uid).length;
     const other=[...plan.values()].filter(v=>!v.r.manual&&v.r.name===r.name&&dayKey(v.t)!==k).sort((a,b)=>a.t-b.t);
     const otherTxt=other.map(v=>shortDay(v.t)+' '+hhmm(v.t)).join(', ');
-    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="Arrastra al plan">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo" aria-label="Confirmar el horario de ${esc(r.name)}">⚠</span>`:''}${ns?`<span class="cnt">${ns} en plan</span>`:other.length?`<span class="cnt amb" title="Ya en tu plan: ${esc(otherTxt)}">↻ repetida</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">↻ Esta serie ya está en tu plan: ${esc(otherTxt)}</div>`:''}</div>`;
+    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="${esc(t('Arrastra al plan'))}">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="${esc(t('Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo'))}" aria-label="${esc(t('Confirmar el horario de {0}',r.name))}">⚠</span>`:''}${ns?`<span class="cnt">${esc(t('{0} en plan',ns))}</span>`:other.length?`<span class="cnt amb" title="${esc(t('Ya en tu plan: {0}',otherTxt))}">${esc(t('↻ repetida'))}</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">${esc(t('↻ Esta serie ya está en tu plan: {0}',otherTxt))}</div>`:''}</div>`;
     const hd=el.querySelector('.rh');
     const uw=el.querySelector('.unc');
     if(uw){uw.onpointerdown=e=>e.stopPropagation();uw.onclick=e=>{e.stopPropagation();openFix(r.name)};uw.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openFix(r.name)}}}
@@ -561,9 +597,9 @@ let active=0;
 function dayInfo(i){
   const [Y,M,D]=$('day').value.split('-').map(Number),d=new Date(Y,M-1,D+i);
   return {i,key:dayKey(d),d0:d.getTime(),d1:new Date(Y,M-1,D+i+1).getTime(),
-    label:d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}).replace('.','')};
+    label:d.toLocaleDateString(LOC(),{weekday:'short',day:'numeric',month:'short'}).replace('.','')};
 }
-const shortDay=d=>d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric'}).replace('.','');
+const shortDay=d=>d.toLocaleDateString(LOC(),{weekday:'short',day:'numeric'}).replace('.','');
 function setActive(i){active=i;$('mday').value=i;render()}
 function renderTabs(){
   const sel=$('mday'),sig=dayInfo(0).key;
@@ -591,11 +627,11 @@ function drawTimeline(){
     if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="Ahora"></div>`;
     its.forEach(it=>{
       const w=Math.max((it.e-it.s)/36e5*PPH,16);
-      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${!it.r.manual&&it.e<=nowT?'past':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${esc(it.r.name)}&#10;${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' - '+esc(it.r.track)}">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?'<button class="cp" aria-label="Duplicar bloque" title="Duplicar bloque (Ctrl+D)">⧉</button>':''}<button class="x" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${!it.r.manual&&it.e<=nowT?'past':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${esc(it.r.name)}&#10;${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' - '+esc(it.r.track)}">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?`<button class="cp" aria-label="${esc(t('Duplicar bloque'))}" title="${esc(t('Duplicar bloque (Ctrl+D)'))}">⧉</button>`:''}<button class="x" aria-label="${esc(t('Quitar del plan'))}" title="${esc(t('Quitar del plan'))}">×</button></div>`;
     });
     if(showPv)h+=`<div class="ghost" style="left:${px(pv.s)}px;width:${(pv.e-pv.s)/36e5*PPH}px;top:${top+(nRows-1)*rowH}px"></div>`;
-    const own=dayAll.filter(it=>it.s>=di.d0),hid=own.filter(it=>!(it.e>v0&&it.s<v1)).length,nm=own.filter(x=>x.r.manual).length,nr=own.length-nm,sum=own.length?`${nr} carrera${nr==1?'':'s'}${nm?` + ${nm} manual${nm>1?'es':''}`:''} · ${hhmm(new Date(own[0].s))}–${hhmm(new Date(Math.max(...own.map(x=>x.e))))}${hid?` · ${hid} fuera del rango horario`:''}`:'sin carreras';
-    html+=`<section class="day ${i===active?'act':''}"><div class="dh"><button class="dl" data-i="${i}" title="Ver las carreras de este día">${esc(di.label)}</button><span class="ds">${sum}</span></div><div class="axis" style="width:${W}px;height:${top+nRows*rowH+10}px">${h}</div></section>`;
+    const own=dayAll.filter(it=>it.s>=di.d0),hid=own.filter(it=>!(it.e>v0&&it.s<v1)).length,nm=own.filter(x=>x.r.manual).length,nr=own.length-nm,sum=own.length?`${t(nr==1?'{0} carrera':'{0} carreras',nr)}${nm?' + '+t(nm>1?'{0} manuales':'{0} manual',nm):''} · ${hhmm(new Date(own[0].s))}–${hhmm(new Date(Math.max(...own.map(x=>x.e))))}${hid?' · '+t('{0} fuera del rango horario',hid):''}`:t('sin carreras');
+    html+=`<section class="day ${i===active?'act':''}"><div class="dh"><button class="dl" data-i="${i}" title="${esc(t('Ver las carreras de este día'))}">${esc(di.label)}</button><span class="ds">${sum}</span></div><div class="axis" style="width:${W}px;height:${top+nRows*rowH+10}px">${h}</div></section>`;
   }
   const dd=$('days');dd.style.width=W+'px';dd.innerHTML=html;flashKey=null;
   dd.querySelectorAll('.blk').forEach(b=>{
@@ -609,25 +645,25 @@ function drawTimeline(){
   });
   dd.querySelectorAll('.dl').forEach(b=>b.onclick=()=>setActive(+b.dataset.i));
   const rc=items.filter(i=>!i.r.manual),mc=items.length-rc.length,tot=rc.reduce((a,i)=>a+i.r.dur-10,0),est=rc.some(i=>i.r.est)?'≈ ':'';
-  let s=items.length?`<span><b>${rc.length}</b> carrera${rc.length==1?'':'s'}${mc?` + ${mc} manual${mc>1?'es':''}`:''}</span><span><b>${est}${Math.floor(tot/60)} h ${tot%60} min</b> de carrera</span>`:'<span class="status">Elige un día y pulsa una hora de la lista para añadir la carrera a tu plan.</span>';
-  if(nBad)s+=`<span class="warn">${nBad} carreras se solapan (en rojo)</span>`;
+  let s=items.length?`<span><b>${rc.length}</b> ${t(rc.length==1?'carrera':'carreras')}${mc?' + '+mc+' '+t(mc>1?'manuales':'manual'):''}</span><span><b>${est}${Math.floor(tot/60)} h ${tot%60} min</b> ${t('de carrera')}</span>`:'<span class="status">'+esc(t('Elige un día y pulsa una hora de la lista para añadir la carrera a tu plan.'))+'</span>';
+  if(nBad)s+=`<span class="warn">${esc(t('{0} carreras se solapan (en rojo)',nBad))}</span>`;
   const reps=Object.keys(cnt).filter(n=>cnt[n]>1);
-  if(reps.length)s+=`<span class="amb">↻ Series repetidas: ${reps.map(n=>esc(n)+' ('+items.filter(i=>i.r.name===n).map(i=>shortDay(i.t)).join(', ')+')').join(' · ')}</span>`;
+  if(reps.length)s+=`<span class="amb">${esc(t('↻ Series repetidas:'))} ${reps.map(n=>esc(n)+' ('+items.filter(i=>i.r.name===n).map(i=>shortDay(i.t)).join(', ')+')').join(' · ')}</span>`;
   $('sum').innerHTML=s;
 }
 let mseq=0;
 $('madd').onclick=()=>{
   const [h1,m1]=$('mfrom').value.split(':').map(Number),[h2,m2]=$('mto').value.split(':').map(Number),msg=$('msg');
-  if([h1,m1,h2,m2].some(isNaN)||(h1*60+m1)===(h2*60+m2)){msg.className='status msgerr';msg.textContent='Indica una hora de inicio y otra de fin distintas.';return}
+  if([h1,m1,h2,m2].some(isNaN)||(h1*60+m1)===(h2*60+m2)){msg.className='status msgerr';msg.textContent=t('Indica una hora de inicio y otra de fin distintas.');return}
   msg.className='status';msg.textContent='';
   let dur=(h2*60+m2)-(h1*60+m1);if(dur<0)dur+=1440;
-  const t=new Date(dayInfo(+$('mday').value).d0);t.setHours(h1,m1,0,0);
+  const st=new Date(dayInfo(+$('mday').value).d0);st.setHours(h1,m1,0,0);
   const id='m'+(++mseq);
-  plan.set(id,{r:{uid:id,name:$('mdesc').value.trim()||'Bloque manual',lic:'M',manual:true,dur,track:'',cat:'',est:0},t});
+  plan.set(id,{r:{uid:id,name:$('mdesc').value.trim()||t('Bloque manual'),lic:'M',manual:true,dur,track:'',cat:'',est:0},t:st});
   $('mdesc').value='';render();
 };
 const cap1=s=>s.charAt(0).toUpperCase()+s.slice(1);
-const dayLong=d=>cap1(d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}));
+const dayLong=d=>cap1(d.toLocaleDateString(LOC(),{weekday:'long',day:'numeric',month:'long'}));
 function agendaData(){
   const all=[...plan.entries()].map(([kk,v])=>({kk,...v,...slot(v.r,v.t)})).sort((a,b)=>a.s-b.s);
   const cnt={};all.forEach(i=>{if(!i.r.manual)cnt[i.r.name]=(cnt[i.r.name]||0)+1});
@@ -635,31 +671,31 @@ function agendaData(){
   return Array.from({length:7},(_,i)=>{const di=dayInfo(i);return {di,its:all.filter(it=>it.s>=di.d0&&it.s<di.d1)}});
 }
 const endTxt=(it,di)=>hhmm(new Date(it.e))+(dayKey(new Date(it.e))!==di.key?'⁺¹':'');
-const detTxt=it=>it.r.manual?`Bloque personal · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} min`;
+const detTxt=it=>it.r.manual?`${t('Bloque personal')} · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} min`;
 function drawAgenda(){
   const days=agendaData(),today=dayKey(new Date());let h='',tot=0;
   for(const {di,its} of days){
     tot+=its.length;
     if(!its.length)continue;
-    h+=`<section class="ad"><h3>${esc(dayLong(new Date(di.d0)))}${di.key===today?' <span class="hoy">hoy</span>':''}<small>${its.length?its.length+(its.length==1?' elemento':' elementos'):''}</small></h3>`;
+    h+=`<section class="ad"><h3>${esc(dayLong(new Date(di.d0)))}${di.key===today?' <span class="hoy">'+esc(t('hoy'))+'</span>':''}<small>${its.length?t(its.length==1?'{0} elemento':'{0} elementos',its.length):''}</small></h3>`;
     for(const it of its){
       const badge=it.r.manual?'<span class="lic M">✎</span>':`<span class="lic ${it.r.lic}" style="background:${col(it.r.lic)}">${esc(it.r.lic)}</span>`;
-      h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">⚠ solapa</span>':''}${it.dup?'<span class="flag r">↻ repetida</span>':''}${it.r.unc?`<span class="flag r" data-fix="${esc(it.r.name)}" role="button" tabindex="0" title="Confirmar el horario de esta serie">⚠ horario por confirmar</span>`:''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="Quitar del plan" title="Quitar del plan">×</button></div>`;
+      h+=`<div class="ar" style="--c:${col(it.r.lic)}"><span class="at">${hhmm(it.t)}–${endTxt(it,di)}</span><span class="an"><b>${badge}${esc(it.r.name)}${it.bad?'<span class="flag o">'+esc(t('⚠ solapa'))+'</span>':''}${it.dup?'<span class="flag r">'+esc(t('↻ repetida'))+'</span>':''}${it.r.unc?`<span class="flag r" data-fix="${esc(it.r.name)}" role="button" tabindex="0" title="${esc(t('Confirmar el horario de esta serie'))}">${esc(t('⚠ horario por confirmar'))}</span>`:''}</b><small>${esc(detTxt(it))}</small></span><button class="x2" data-k="${it.kk}" aria-label="${esc(t('Quitar del plan'))}" title="${esc(t('Quitar del plan'))}">×</button></div>`;
     }
     h+='</section>';
   }
-  $('agenda').innerHTML=tot?h:'<p class="none" style="padding:14px 0">Todavía no has planificado nada esta semana. Añade carreras desde la lista o crea un bloque personalizado.</p>';
+  $('agenda').innerHTML=tot?h:'<p class="none" style="padding:14px 0">'+esc(t('Todavía no has planificado nada esta semana. Añade carreras desde la lista o crea un bloque personalizado.'))+'</p>';
   $('agenda').querySelectorAll('.x2').forEach(b=>b.onclick=()=>{plan.delete(b.dataset.k);render()});
   $('agenda').querySelectorAll('[data-fix]').forEach(b=>{b.onclick=()=>openFix(b.dataset.fix);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFix(b.dataset.fix)}}});
 }
 function agendaText(){
   const days=agendaData().filter(d=>d.its.length),a=$('day').value;
   const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'',off=-new Date(dayInfo(0).d0).getTimezoneOffset(),ao=Math.abs(off);
-  const lines=[`${$('ttl').textContent} (${fmtD(a)} – ${fmtD(isoAdd(a,6))})`,`Horas en ${tz?tz+' ':''}(UTC${off>=0?'+':'-'}${Math.floor(ao/60)}${ao%60?':'+pad(ao%60):''})`,''];
-  if(!days.length)lines.push('Sin carreras planificadas esta semana.');
+  const lines=[`${$('ttl').textContent} (${fmtD(a)} – ${fmtD(isoAdd(a,6))})`,`${t('Horas en')} ${tz?tz+' ':''}(UTC${off>=0?'+':'-'}${Math.floor(ao/60)}${ao%60?':'+pad(ao%60):''})`,''];
+  if(!days.length)lines.push(t('Sin carreras planificadas esta semana.'));
   for(const {di,its} of days){
     lines.push(dayLong(new Date(di.d0)));
-    for(const it of its)lines.push(`  ${hhmm(it.t)}–${endTxt(it,di)}  ${it.r.name} · ${it.r.manual?'personal · '+it.r.dur+' min':detTxt(it)}${it.r.unc?' ⚠ horario por confirmar':''}`);
+    for(const it of its)lines.push(`  ${hhmm(it.t)}–${endTxt(it,di)}  ${it.r.name} · ${it.r.manual?t('personal')+' · '+it.r.dur+' min':detTxt(it)}${it.r.unc?' ⚠ '+t('horario por confirmar'):''}`);
     lines.push('');
   }
   return lines.join('\n').trimEnd()+'\n';
@@ -675,25 +711,25 @@ function icsText(){
   const items=agendaData().flatMap(d=>d.its),stamp=icsDt(Date.now());
   const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//iracing-planner//ES','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+icsEsc($('ttl').textContent)];
   for(const it of items){
-    const desc=it.r.manual?`Bloque personal · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} min de carrera · licencia ${it.r.lic}${it.r.unc?' · Horario por confirmar':''}`;
-    L.push('BEGIN:VEVENT',`UID:iracing-${String(it.r.uid).replace(/[^A-Za-z0-9._-]/g,'')}-${it.s}@planner`,'DTSTAMP:'+stamp,'DTSTART:'+icsDt(it.s),'DTEND:'+icsDt(it.e),'SUMMARY:'+icsEsc(it.r.name),'DESCRIPTION:'+icsEsc(desc),'CATEGORIES:'+(it.r.manual?'Personal':'iRacing'),'TRANSP:OPAQUE','END:VEVENT');
+    const desc=it.r.manual?`${t('Bloque personal')} · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} ${t('min de carrera')} · ${t('licencia {0}',it.r.lic)}${it.r.unc?' · '+t('Horario por confirmar'):''}`;
+    L.push('BEGIN:VEVENT',`UID:iracing-${String(it.r.uid).replace(/[^A-Za-z0-9._-]/g,'')}-${it.s}@planner`,'DTSTAMP:'+stamp,'DTSTART:'+icsDt(it.s),'DTEND:'+icsDt(it.e),'SUMMARY:'+icsEsc(it.r.name),'DESCRIPTION:'+icsEsc(desc),'CATEGORIES:'+(it.r.manual?t('Personal'):'iRacing'),'TRANSP:OPAQUE','END:VEVENT');
   }
   L.push('END:VCALENDAR');
   return {text:L.map(icsFold).join('\r\n')+'\r\n',n:items.length};
 }
 $('icsA').onclick=()=>{
   const m=$('copymsg'),{text,n}=icsText();
-  if(!n){m.textContent='No hay nada que descargar esta semana';setTimeout(()=>{m.textContent=''},2500);return}
+  if(!n){m.textContent=t('No hay nada que descargar esta semana');setTimeout(()=>{m.textContent=''},2500);return}
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/calendar;charset=utf-8'}));
   const wk=META&&META.w1?'semana-'+($('day').selectedIndex+1)+'-':'';a.download=`iracing-${wk}${$('day').value}.ics`;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-  m.textContent=`Calendario descargado (${n} evento${n>1?'s':''})`;setTimeout(()=>{m.textContent=''},2500);
+  m.textContent=t(n>1?'Calendario descargado ({0} eventos)':'Calendario descargado ({0} evento)',n);setTimeout(()=>{m.textContent=''},2500);
 };
 $('copyA').onclick=async()=>{
   const txt=agendaText();let ok=false;
   try{await navigator.clipboard.writeText(txt);ok=true}
   catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{ok=document.execCommand('copy')}catch(_){}ta.remove()}
-  const m=$('copymsg');m.textContent=ok?'Agenda copiada ✓':'No se pudo copiar';setTimeout(()=>{m.textContent=''},2500);
+  const m=$('copymsg');m.textContent=ok?t('Agenda copiada ✓'):t('No se pudo copiar');setTimeout(()=>{m.textContent=''},2500);
 };
 let suppress=false,flashKey=null,dragOn=false;
 function dupBlock(k){
@@ -720,7 +756,7 @@ function dragSession(e,cfg){
     if(st.ghost)st.ghost.remove();
     const ax=document.querySelectorAll('#days .axis')[tg.idx];
     st.ghost=document.createElement('div');st.ghost.className='ghost dg';
-    if(tg.none){st.ghost.className+=' no';st.ghost.style.cssText='left:8px;width:'+(2.2*PPH)+'px;color:var(--bad);font-size:12px;padding:4px';st.ghost.textContent='Sin carrera de esta serie este día'}
+    if(tg.none){st.ghost.className+=' no';st.ghost.style.cssText='left:8px;width:'+(2.2*PPH)+'px;color:var(--bad);font-size:12px;padding:4px';st.ghost.textContent=t('Sin carrera de esta serie este día')}
     else{
       const s=tg.t.getTime(),e2=s+tg.r.dur*6e4,x={s,e:e2};
       if([...plan.entries()].some(([kk,o])=>kk!==cfg.exclude&&clash(x,slot(o.r,o.t))))st.ghost.className+=' no';
@@ -766,34 +802,34 @@ function startNameDrag(e,r,hd){
   dragSession(e,{el:hd,r:null,manual:false,name:r.name,exclude:null,grab:0,off:[16,14],
     clone:()=>{const c=document.createElement('div');c.className='blk '+r.lic;
       c.style.cssText=`position:fixed;height:50px;width:${Math.max(r.dur/60*PPH,90)}px;background:${col(r.lic)}`;
-      c.innerHTML=`${esc(r.name)}<small>${r.dur-10} min · suelta en el día y la hora</small>`;return c},
+      c.innerHTML=`${esc(r.name)}<small>${r.dur-10} min · ${esc(t('suelta en el día y la hora'))}</small>`;return c},
     begin(){},end(){},
     drop:n=>{const k=key(n.r,n.t);if(!plan.has(k)){plan.set(k,{r:n.r,t:n.t});render()}}});
 }
 const pdfScript=null;
 function dataRange(){if(!DATA.length)return ['',''];const ds=DATA.flatMap(s=>s.w.map(w=>w[0])).sort();return [ds[0],new Date(Date.parse(ds[ds.length-1])+6*DAY).toISOString().slice(0,10)]}
-const fmtD=iso=>new Date(iso+'T00:00:00Z').toLocaleDateString('es-ES',{day:'numeric',month:'short',timeZone:'UTC'}).replace('.','');
+const fmtD=iso=>new Date(iso+'T00:00:00Z').toLocaleDateString(LOC(),{day:'numeric',month:'short',timeZone:'UTC'}).replace('.','');
 function buildWeeks(){
   const sel=$('day'),cur=sel.value,today=dayKey(new Date()),opts=[];
-  if(META&&META.w1){for(let i=0;i<13;i++){const a=isoAdd(META.w1,7*i),c=a<=today&&today<=isoAdd(a,6);opts.push([a,`${c?'● ':''}Semana ${i+1} · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`,c])}}
-  else{const a=tueOfIso(today);opts.push([a,`● Semana actual · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`,true])}
+  if(META&&META.w1){for(let i=0;i<13;i++){const a=isoAdd(META.w1,7*i),c=a<=today&&today<=isoAdd(a,6);opts.push([a,`${c?'● ':''}${t('Semana {0}',i+1)} · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`,c])}}
+  else{const a=tueOfIso(today);opts.push([a,`● ${t('Semana actual')} · ${fmtD(a)} – ${fmtD(isoAdd(a,6))}`,true])}
   sel.innerHTML=opts.map(o=>`<option value="${o[0]}"${o[2]?' class="cur"':''}>${o[1]}</option>`).join('');
   sel.value=(opts.find(o=>o[0]===cur)||opts.find(o=>o[0]<=today&&today<=isoAdd(o[0],6))||opts[0])[0];
 }
 function applyTitle(){
   $('day').classList.toggle('curwk',!!($('day').selectedOptions[0]&&$('day').selectedOptions[0].classList.contains('cur')));
   const wk=META&&META.w1?$('day').selectedIndex+1:0;
-  const s='Planificador semanal iRacing'+(META?` - Season ${pad(META.s)}-${pad(META.y%100)}`:'')+(wk?` - Semana ${wk}`:'');
+  const s=t('Planificador semanal iRacing')+(META?` - Season ${pad(META.s)}-${pad(META.y%100)}`:'')+(wk?` - ${t('Semana {0}',wk)}`:'');
   $('ttl').textContent=s;document.title=s;
 }
 function refreshInfo(){
   setTimeout(updDot,0);
-  {const pend=EFF.filter(s=>(!s.p||s.p.inf)&&!s.fix).length,lb=pend?`Confirmar horarios (${pend} pendientes)`:'Confirmar horarios';$('fixn').textContent=pend;$('fixn').hidden=!pend;$('fixbtn').title=lb;$('fixbtn').setAttribute('aria-label',lb)}
-  if(!DATA.length){$('info').textContent='Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.';$('nohr').textContent='';return}
+  {const pend=EFF.filter(s=>(!s.p||s.p.inf)&&!s.fix).length,lb=pend?t('Confirmar horarios ({0} pendientes)',pend):t('Confirmar horarios');$('fixn').textContent=pend;$('fixn').hidden=!pend;$('fixbtn').title=lb;$('fixbtn').setAttribute('aria-label',lb)}
+  if(!DATA.length){$('info').textContent=t('Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.');$('nohr').textContent='';return}
   const [a,b]=dataRange();
   const nu=nUnc(),nf=nFixed();
-  $('info').textContent=`Calendario: ${SRC} · ${DATA.length} series · del ${a} al ${b} · horas en tu zona horaria`+(nu?` · ⚠ ${nu} series con horario por confirmar`:'')+(nf?` · ${nf} horario${nf>1?'s':''} validado${nf>1?'s':''}`:'');
-  $('nohr').textContent='Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: '+(EFF.filter(s=>!s.p).map(s=>s.n).join(', ')||'ninguna')+'.';
+  $('info').textContent=t('Calendario: {0} · {1} series · del {2} al {3} · horas en tu zona horaria',SRC,DATA.length,a,b)+(nu?' · ⚠ '+t('{0} series con horario por confirmar',nu):'')+(nf?' · '+t(nf>1?'{0} horarios validados':'{0} horario validado',nf):'');
+  $('nohr').textContent=t('Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: {0}.',EFF.filter(s=>!s.p).map(s=>s.n).join(', ')||t('ninguna'));
 }
 function applyUi(){
   $('tgF').setAttribute('aria-expanded',ui.f);$('filters').hidden=!ui.f;
@@ -812,7 +848,7 @@ $('tgF').onclick=()=>{ui.f=!ui.f;applyUi();saveState()};
 $('tgD').onclick=()=>{ui.d=!ui.d;applyUi();saveState()};
 function updDot(){
   const m=$('msg'),err=!DATA.length||(m.classList.contains('msgerr')&&!!m.textContent);
-  $('ddot').hidden=!err;$('tgD').title=err?'Datos · hay un aviso'+(m.textContent?': '+m.textContent:''):'Datos';
+  $('ddot').hidden=!err;$('tgD').title=err?t('Datos · hay un aviso')+(m.textContent?': '+m.textContent:''):t('Datos');
 }
 new MutationObserver(updDot).observe($('msg'),{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
 function reconcilePlan(){
@@ -833,7 +869,7 @@ function stateObj(){
 }
 function saveState(){
   try{localStorage.setItem(SKEY,JSON.stringify(stateObj()))}
-  catch(e){if(storageOK){storageOK=false;$('msg').className='status msgerr';$('msg').textContent='Este navegador no permite guardar tu plan (almacenamiento bloqueado).'}}
+  catch(e){if(storageOK){storageOK=false;$('msg').className='status msgerr';$('msg').textContent=t('Este navegador no permite guardar tu plan (almacenamiento bloqueado).')}}
 }
 function applyState(s){
   const put=(id,v)=>{const e=$(id);if(v!=null&&(e.tagName!=='SELECT'||[...e.options].some(o=>o.value===v)))e.value=v};
@@ -854,7 +890,7 @@ $('exp').onclick=()=>{
   const blob=new Blob([JSON.stringify({...stateObj(),val:VAL.series||{},app:'iracing-planner',exported:new Date().toISOString()},null,1)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`iracing-plan-${dayKey(new Date())}.json`;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-  $('msg').className='status';$('msg').textContent=`Plan exportado (${plan.size} bloque${plan.size==1?'':'s'}).`;
+  $('msg').className='status';$('msg').textContent=t(plan.size==1?'Plan exportado ({0} bloque).':'Plan exportado ({0} bloques).',plan.size);
 };
 $('imp').onclick=()=>$('impfile').click();
 $('impfile').onchange=async e=>{
@@ -862,13 +898,13 @@ $('impfile').onchange=async e=>{
   const msg=$('msg');
   try{
     const s=JSON.parse(await f.text());
-    if(!validState(s))throw new Error('el archivo no es un plan exportado por esta aplicación');
-    if(plan.size&&!confirm('Importar sustituirá tu plan y tus ajustes actuales. ¿Continuar?'))return;
+    if(!validState(s))throw new Error(t('el archivo no es un plan exportado por esta aplicación'));
+    if(plan.size&&!confirm(t('Importar sustituirá tu plan y tus ajustes actuales. ¿Continuar?')))return;
     applyState(s);if(s.val&&typeof s.val==='object'&&!Array.isArray(s.val)){VAL={series:s.val};persistVal();rebuildEff()}
     const lost=DATA.length?reconcilePlan():0;
     $('mday').value=active;applyUi();render();
-    msg.className='status';msg.textContent=`Plan importado (${plan.size} bloque${plan.size==1?'':'s'}).`+(lost?` ${lost} carrera${lost>1?'s':''} no existe${lost>1?'n':''} en el calendario actual y se ${lost>1?'han':'ha'} omitido.`:'');
-  }catch(err){msg.className='status msgerr';msg.textContent='No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido':err.message)+'.'}
+    msg.className='status';msg.textContent=t(plan.size==1?'Plan importado ({0} bloque).':'Plan importado ({0} bloques).',plan.size)+(lost?' '+t(lost>1?'{0} carreras no existen en el calendario actual y se han omitido.':'{0} carrera no existe en el calendario actual y se ha omitido.',lost):'');
+  }catch(err){msg.className='status msgerr';msg.textContent=t('No se pudo importar: {0}.',err instanceof SyntaxError?t('el archivo no es un JSON válido'):err.message)}
 };
 function setData(d,name,save,sig,meta){
   DATA=d;SRC=name;SIG=sig||'';META=meta||null;rebuildEff();
@@ -885,14 +921,14 @@ async function loadPatches(){
     else if(r.ok){txt=await r.text();if(txt.trim().startsWith('<'))txt='{"series":{}}'}
   }catch(e){}
   if(txt===null)return;                                   // sin acceso: se conservan las correcciones guardadas
-  let j;try{j=JSON.parse(txt)}catch(e){msg.className='status msgerr';msg.textContent=`${PATCH_FILE} no es un JSON válido: se ignora.`;return}
+  let j;try{j=JSON.parse(txt)}catch(e){msg.className='status msgerr';msg.textContent=t('{0} no es un JSON válido: se ignora.',PATCH_FILE);return}
   if(!j||typeof j!=='object'||!j.series||typeof j.series!=='object')j={series:{}};
   const same=JSON.stringify(j)===JSON.stringify(PATCH);
   PATCH=j;
   try{Object.keys(j.series).length?localStorage.setItem(PATCH_KEY,JSON.stringify(j)):localStorage.removeItem(PATCH_KEY)}catch(e){}
   if(same)return;
   rebuildEff();const lost=reconcilePlan();refreshInfo();render();
-  if(lost){msg.className='status';msg.textContent=`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió con las correcciones.`}
+  if(lost){msg.className='status';msg.textContent=t(lost>1?'{0} carreras de tu plan se han quitado porque su horario cambió con las correcciones.':'{0} carrera de tu plan se ha quitado porque su horario cambió con las correcciones.',lost)}
 }
 const DAYS_ES={Mon:'Lun',Tue:'Mar',Wed:'Mié',Thu:'Jue',Fri:'Vie',Sat:'Sáb',Sun:'Dom'};
 const DAY_IN={lun:'Mon',mon:'Mon',mar:'Tue',tue:'Tue',mie:'Wed','mié':'Wed',wed:'Wed',jue:'Thu',thu:'Thu',vie:'Fri',fri:'Fri',sab:'Sat','sáb':'Sat',sat:'Sat',dom:'Sun',sun:'Sun'};
@@ -906,7 +942,7 @@ function parseSlotsTxt(txt){
   }
   return out.length?out:null;
 }
-const slotsTxt=w=>w.map(([d,tm])=>DAYS_ES[d]+' '+tm).join(', ');
+const slotsTxt=w=>w.map(([d,tm])=>t(DAYS_ES[d])+' '+tm).join(', ');
 let fixOnly=null;
 const filePatched=n=>((PATCH.series||{})[n]||{}).confirmed===true;
 const fixItems=()=>DATA.filter(s=>!s.p||s.p.inf||(VAL.series||{})[s.n]||filePatched(s.n)).sort((a,b)=>a.n.localeCompare(b.n));
@@ -917,37 +953,37 @@ function saveVal(name,entry){
   persistVal();rebuildEff();const lost=reconcilePlan();refreshInfo();render();return lost;
 }
 function fixDesc(s){
-  if(!s.p)return 'El PDF solo indica «timeslots por semana», sin horas';
-  if(s.p.k!=='i')return 'Horario semanal';
-  return s.p.s===120?`Cada 2 horas, a los :${pad(s.p.o[0])}`:s.p.s===60?'Cada hora':'Cada 30 minutos';
+  if(!s.p)return t('El PDF solo indica «timeslots por semana», sin horas');
+  if(s.p.k!=='i')return t('Horario semanal');
+  return s.p.s===120?t('Cada 2 horas, a los :{0}',pad(s.p.o[0])):s.p.s===60?t('Cada hora'):t('Cada 30 minutos');
 }
 function fixRow(s){
   const v=(VAL.series||{})[s.n],fp=!v&&filePatched(s.n),ent=v||(PATCH.series||{})[s.n]||null,ok=!!v||fp,dis=fp?' disabled':'';
   let c='';
   if(!s.p){
     const val=ent&&ent.weekly?slotsTxt(ent.weekly):'';
-    c=`<label>Horas de salida (UTC)<input type="text" class="fs" placeholder="Mar 19:00, Sáb 12:30" value="${esc(val)}"${dis}></label>`;
+    c=`<label>${esc(t('Horas de salida (UTC)'))}<input type="text" class="fs" placeholder="${esc(t('Mar 19:00, Sáb 12:30'))}" value="${esc(val)}"${dis}></label>`;
   }else if(s.p.k==='i'&&s.p.s===120){
     const odd=ent&&ent.hours?ent.hours==='odd':!!s.p.p;
-    c=`<label>Horas<select class="fh"${dis}><option value="even"${odd?'':' selected'}>Pares</option><option value="odd"${odd?' selected':''}>Impares</option></select></label>`;
+    c=`<label>${esc(t('Horas'))}<select class="fh"${dis}><option value="even"${odd?'':' selected'}>${esc(t('Pares'))}</option><option value="odd"${odd?' selected':''}>${esc(t('Impares'))}</option></select></label>`;
   }else if(s.p.k==='i'&&s.p.s===30){
     const m=ent&&ent.at?ent.at[0]%30:s.p.o[0]%30;
-    c=`<label>Minutos<select class="fm"${dis}><option value="0"${m?'':' selected'}>:00 y :30</option><option value="15"${m?' selected':''}>:15 y :45</option></select></label>`;
+    c=`<label>${esc(t('Minutos'))}<select class="fm"${dis}><option value="0"${m?'':' selected'}>${esc(t(':00 y :30'))}</option><option value="15"${m?' selected':''}>${esc(t(':15 y :45'))}</option></select></label>`;
   }else if(s.p.k==='i'){
     const m=ent&&ent.at?ent.at[0]:s.p.o[0];
-    c=`<label>Minuto<select class="fm"${dis}>${[0,15,30,45].map(x=>`<option value="${x}"${x===m?' selected':''}>:${pad(x)}</option>`).join('')}</select></label>`;
+    c=`<label>${esc(t('Minuto'))}<select class="fm"${dis}>${[0,15,30,45].map(x=>`<option value="${x}"${x===m?' selected':''}>:${pad(x)}</option>`).join('')}</select></label>`;
   }
-  return `<div class="fr${ok?' ok':''}" data-n="${esc(s.n)}"><label class="fv"><input type="checkbox" class="fcv"${ok?' checked':''}${dis}> Validado</label><div class="fn"><b>${esc(s.n)}</b><small>${esc(fixDesc(s))}${fp?' · fijado en SchedulePatches.json':''}</small></div><div class="fc">${c}</div></div>`;
+  return `<div class="fr${ok?' ok':''}" data-n="${esc(s.n)}"><label class="fv"><input type="checkbox" class="fcv"${ok?' checked':''}${dis}> ${esc(t('Validado'))}</label><div class="fn"><b>${esc(s.n)}</b><small>${esc(fixDesc(s))}${fp?' · '+esc(t('fijado en SchedulePatches.json')):''}</small></div><div class="fc">${c}</div></div>`;
 }
 function fixCount(){
   const items=fixItems(),ok=items.filter(s=>(VAL.series||{})[s.n]||filePatched(s.n)).length;
-  $('fixcount').textContent=`Validadas ${ok} de ${items.length}`;
+  $('fixcount').textContent=t('Validadas {0} de {1}',ok,items.length);
 }
 function renderFix(){
   const only=$('fixonly').checked;
   const q=$('fixq').value.trim().toLowerCase();
   const items=fixItems().filter(s=>(!only||!((VAL.series||{})[s.n]||filePatched(s.n)))&&(fixOnly?s.n===fixOnly:(!q||s.n.toLowerCase().includes(q))));
-  $('fixbody').innerHTML=items.length?items.map(fixRow).join(''):`<p class="none" style="padding:16px 0">${q?'Ninguna serie coincide con la búsqueda.':'No quedan horarios por confirmar.'}</p>`;
+  $('fixbody').innerHTML=items.length?items.map(fixRow).join(''):`<p class="none" style="padding:16px 0">${esc(q?t('Ninguna serie coincide con la búsqueda.'):t('No quedan horarios por confirmar.'))}</p>`;
   fixCount();
 }
 function entryFor(s,row){
@@ -964,17 +1000,17 @@ $('fixbody').addEventListener('change',e=>{
   let entry=null;
   if(cb.checked){
     entry=entryFor(s,row);
-    if(entry===false){cb.checked=false;inp.classList.add('bad');msg.textContent='No entiendo esas horas. Escribe, por ejemplo: Mar 19:00, Sáb 12:30';return}
+    if(entry===false){cb.checked=false;inp.classList.add('bad');msg.textContent=t('No entiendo esas horas. Escribe, por ejemplo: {0}',t('Mar 19:00, Sáb 12:30'));return}
   }
   const lost=saveVal(name,entry);
   row.classList.toggle('ok',!!entry);fixCount();
-  msg.textContent=(entry?'Guardado. ':'Validación quitada. ')+(lost?`${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
+  msg.textContent=(entry?t('Guardado.'):t('Validación quitada.'))+(lost?' '+t(lost>1?'{0} carreras de tu plan se han quitado porque su horario cambió.':'{0} carrera de tu plan se ha quitado porque su horario cambió.',lost):'');
 });
 $('fixonly').onchange=renderFix;
 $('fixq').oninput=()=>{fixOnly=null;renderFix()};
 $('fixall').onclick=()=>{
   const rows=[...$('fixbody').querySelectorAll('.fr')].filter(r=>!r.classList.contains('ok')&&!r.querySelector('.fcv').disabled),msg=$('fixmsg');
-  if(!rows.length){msg.textContent='No hay series pendientes en la lista.';return}
+  if(!rows.length){msg.textContent=t('No hay series pendientes en la lista.');return}
   const good=[];let skip=0;
   for(const r of rows){
     const s=DATA.find(x=>x.n===r.dataset.n),e=s&&entryFor(s,r),i=r.querySelector('.fs');
@@ -982,14 +1018,14 @@ $('fixall').onclick=()=>{
     if(i)i.classList.remove('bad');
     good.push([r,s,e]);
   }
-  if(!good.length){msg.textContent=`${skip} serie${skip>1?'s':''} sin validar: faltan las horas.`;return}
-  if(!confirm(`Se validarán ${good.length} serie${good.length>1?'s':''} con los valores que ves en la lista`+(skip?` (${skip} se quedan pendientes por falta de horas)`:'')+'. ¿Continuar?'))return;
+  if(!good.length){msg.textContent=t('{0} sin validar: faltan las horas.',skip);return}
+  if(!confirm(t(good.length>1?'Se validarán {0} series con los valores que ves en la lista':'Se validará {0} serie con los valores que ves en la lista',good.length)+(skip?' '+t('({0} se quedan pendientes por falta de horas)',skip):'')+t('. ¿Continuar?')))return;
   VAL.series=VAL.series||{};
   for(const [r,s,e] of good)VAL.series[s.n]=e;
   persistVal();rebuildEff();const lost=reconcilePlan();refreshInfo();render();
   good.forEach(([r])=>{r.classList.add('ok');r.querySelector('.fcv').checked=true});fixCount();
   const done=good.length;
-  msg.textContent=`${done} validada${done==1?'':'s'}.`+(skip?` ${skip} sin validar: faltan las horas.`:'')+(lost?` ${lost} carrera${lost>1?'s':''} de tu plan se ha${lost>1?'n':''} quitado porque su horario cambió.`:'');
+  msg.textContent=t(done==1?'{0} validada.':'{0} validadas.',done)+(skip?' '+t('{0} sin validar: faltan las horas.',skip):'')+(lost?' '+t(lost>1?'{0} carreras de tu plan se han quitado porque su horario cambió.':'{0} carrera de tu plan se ha quitado porque su horario cambió.',lost):'');
 };
 let fixOpener=null;
 function openFix(name){
@@ -1012,7 +1048,7 @@ document.addEventListener('keydown',e=>{
 const PDF_NAME='SeasonSchedule.pdf';
 function fnv(u8){let h=2166136261;for(let i=0;i<u8.length;i++){h^=u8[i];h=Math.imul(h,16777619)}return (h>>>0).toString(16)+'-'+u8.length}
 async function parseBuffer(buf,onProgress){
-  if(!window.pdfjsLib)throw new Error('el lector de PDF no está disponible');
+  if(!window.pdfjsLib)throw new Error(t('el lector de PDF no está disponible'));
   if(!pdfjsLib.GlobalWorkerOptions.workerSrc)pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([$('pdfworker').textContent],{type:'text/javascript'}));
   const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
   const lines=await pdfToLines(pdf,onProgress);
@@ -1022,22 +1058,23 @@ async function loadCalendar(){
   const msg=$('msg');
   try{
     const r=await fetch(PDF_NAME,{cache:'no-cache'});
-    if(!r.ok)throw new Error(r.status===404?`no encuentro ${PDF_NAME} junto al HTML`:'error '+r.status);
+    if(!r.ok)throw new Error(r.status===404?t('no encuentro {0} junto al HTML',PDF_NAME):t('error {0}',r.status));
     const buf=await r.arrayBuffer(),sig=fnv(new Uint8Array(buf));
     if(DATA.length&&sig===SIG&&META&&META.w1&&META.pv===PV)return;                       // el PDF no ha cambiado: se usa lo guardado
-    msg.className='status';msg.textContent='Leyendo calendario…';
-    const pr=await parseBuffer(buf,(p,n)=>{msg.textContent=`Leyendo calendario… página ${p} de ${n}`});
+    msg.className='status';msg.textContent=t('Leyendo calendario…');
+    const pr=await parseBuffer(buf,(p,n)=>{msg.textContent=t('Leyendo calendario… página {0} de {1}',p,n)});
     const d=Array.isArray(pr)?pr:pr.data,meta=Array.isArray(pr)?null:pr.meta;
-    if(!d.length)throw new Error('no reconozco el formato del calendario de iRacing');
+    if(!d.length)throw new Error(t('no reconozco el formato del calendario de iRacing'));
     const lost=setData(d,PDF_NAME,true,sig,meta);
-    msg.textContent=`Calendario actualizado: ${d.length} series, ${d.reduce((a,s)=>a+s.w.length,0)} semanas.`+(lost?` ${lost} carrera${lost>1?'s':''} de tu plan ya no existe${lost>1?'n':''} en el nuevo calendario y se ${lost>1?'han':'ha'} quitado.`:'');
+    msg.textContent=t('Calendario actualizado: {0} series, {1} semanas.',d.length,d.reduce((a,s)=>a+s.w.length,0))+(lost?' '+t(lost>1?'{0} carreras de tu plan ya no existen en el nuevo calendario y se han quitado.':'{0} carrera de tu plan ya no existe en el nuevo calendario y se ha quitado.',lost):'');
   }catch(e){
     msg.className='status msgerr';
-    msg.textContent=(location.protocol==='file:'?`El navegador no permite leer ${PDF_NAME} si el HTML se abre con doble clic: sirve la carpeta desde un servidor web (p. ej. «python -m http.server») o súbela a tu alojamiento. `:`No se pudo leer ${PDF_NAME}: ${e.message}. `)+(DATA.length?'Se usa el último calendario guardado.':'');
+    msg.textContent=(location.protocol==='file:'?t('El navegador no permite leer {0} si el HTML se abre con doble clic: sirve la carpeta desde un servidor web (p. ej. «python -m http.server») o súbela a tu alojamiento.',PDF_NAME)+' ':t('No se pudo leer {0}: {1}.',PDF_NAME,e.message)+' ')+(DATA.length?t('Se usa el último calendario guardado.'):'');
   }
 }
 $('colAll').onclick=()=>{expanded.clear();render()};
 $('expAll').onclick=()=>{shown.forEach(r=>expanded.add(r.name));render()};
+setLang(LANG);
 rebuildEff();buildWeeks();
 const slots=end=>Array.from({length:end?97:96},(_,i)=>{const m=i*15;return `<option>${pad(Math.floor(m/60))}:${pad(m%60)}</option>`}).join('');
 ['from','mfrom','mto'].forEach(id=>$(id).innerHTML=slots(false));$('to').innerHTML=slots(true);
@@ -1050,7 +1087,7 @@ const sc=()=>{$('scroll').scrollLeft=0};
 addEventListener('resize',()=>drawTimeline());
 setInterval(()=>{if(!dragOn&&ui.v==='T'&&!$('viewT').hidden)drawTimeline()},60000);
 if(window.ResizeObserver)new ResizeObserver(()=>{const w=$('scroll').clientWidth;if(w&&Math.abs(w-lastW)>0.5)drawTimeline()}).observe($('scroll'));
-applyTitle();refreshInfo();render();sc();
+applyTitle();refreshInfo();render();sc();appReady=true;
 (async()=>{await loadPatches();await loadCalendar()})();
 </script>
 </body>
