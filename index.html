@@ -128,6 +128,35 @@ main.nolist{grid-template-columns:minmax(0,1fr)}main.nolist #side{display:none}
 @keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--ter),0 0 14px var(--ter)}100%{box-shadow:none}}
 .blk.flash{animation:flash 1.6s ease-out}
 .dot.bad{background:var(--bad)}
+.star{cursor:pointer;color:var(--mute);font-size:15px;line-height:1;padding:0 2px;flex:none;border-radius:3px}
+.star.on{color:#f2b01e}.star:hover,.star:focus-visible{transform:scale(1.2)}
+#favOnly[aria-pressed=true]{border-color:#f2b01e;color:#f2b01e}
+.vt .vtx{margin-left:auto;width:34px;height:34px;padding:0;margin-bottom:3px;border-radius:6px;background:var(--panel);color:var(--ink);box-shadow:none}
+.vt .vtx svg{width:18px;height:18px}
+.unav{position:absolute;top:0;bottom:0;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(127,127,127,.22) 0 6px,rgba(127,127,127,.08) 6px 12px);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mute)}
+.avr{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.avt{display:flex;gap:6px;align-items:center}.avt[hidden]{display:none}
+.repbody{padding:8px 16px 4px;display:flex;flex-direction:column;gap:10px}
+label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:3000;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ter);border-radius:8px;padding:10px 16px;max-width:min(560px,92vw);box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:14px}
+.shead{font-size:13px;color:var(--mute);margin:0 0 6px}
+.st{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
+.st th,.st td{border-bottom:1px solid var(--line);padding:4px 5px;vertical-align:top;overflow:hidden}
+.st thead th{position:sticky;top:0;background:var(--panel);z-index:2;text-align:center;font-weight:400}
+.st th.sn,.st td.sn{width:210px;text-align:left;position:sticky;left:0;background:var(--panel);z-index:1;white-space:nowrap}
+.st thead th.sn{z-index:3}
+.st .sw{cursor:pointer}.st .sw b{display:block;font-size:12px}.st .sw small{color:var(--mute)}
+.st .sw.cur,.st td.cur{background:rgba(121,255,74,.10)}
+.st .sw.sel{box-shadow:inset 0 -3px 0 var(--sec)}
+.st td.sc{cursor:pointer;line-height:1.2}
+.st td.sc:hover{outline:2px solid var(--sec);outline-offset:-2px}
+.st td.pl{background:rgba(152,25,255,.22);font-weight:600}
+.st td.none{color:var(--mute);text-align:center;cursor:default}
+.st td em{font-style:normal;color:var(--ter);margin-left:3px}
+.cl{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.snn{overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:140px;vertical-align:bottom}
+@media(max-width:700px){.st th.sn,.st td.sn{width:140px}.snn{max-width:70px}.st{font-size:10px}}
+@media(max-width:560px){.vt button span{display:none}.vt button{padding:0 12px}}
 .lang{display:inline-flex;align-items:center;gap:6px;margin-left:6px;padding-left:12px;border-left:1px solid var(--line)}
 .lg{width:42px;height:34px;padding:6px 7px;display:flex;align-items:center;justify-content:center;opacity:.5;filter:grayscale(.55)}
 .lg svg{width:100%;height:auto;display:block;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
@@ -185,6 +214,7 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
   <label>Semana (martes a lunes)<select id="day"></select></label>
   <label>Desde<select id="from"></select></label>
   <label>Hasta<select id="to"></select></label>
+  <button class="ib" id="avBtn" type="button" aria-label="Disponibilidad por día" title="Disponibilidad por día: elige cuándo puedes correr cada día"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="14" height="14" rx="2"/><path d="M3 9h14M7 2v4M13 2v4"/><circle cx="17" cy="17" r="4.5"/><path d="M17 15v2.2l1.4.8"/></svg><i class="dot" id="avdot" hidden></i></button>
   <label>Licencia<select id="lic"><option value="">Todas</option><option>R</option><option>D</option><option>C</option><option>B</option><option>A</option></select></label>
   <label>Categoría<select id="cat"><option value="">Todas</option><option value="OVAL">Oval</option><option value="SPORTS CAR">Sports car</option><option value="FORMULA CAR">Formula car</option><option value="DIRT OVAL">Dirt oval</option><option value="DIRT ROAD">Dirt road</option></select></label>
   
@@ -202,14 +232,18 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
 
 <main>
   <section class="panel" id="side"><h2><button id="hideSide" aria-label="Ocultar la lista" title="Ocultar la lista">‹</button> Carreras disponibles</h2>
-    <div class="sub"><small id="actday" class="status"></small><input type="search" id="q" placeholder="Buscar serie o circuito" aria-label="Buscar serie o circuito"><span class="acts"><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
+    <div class="sub"><small id="actday" class="status"></small><input type="search" id="q" placeholder="Buscar serie o circuito" aria-label="Buscar serie o circuito"><span class="acts"><button class="ib" id="favOnly" type="button" aria-pressed="false" aria-label="Solo favoritas" title="Solo favoritas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/></svg></button><button class="ib" id="colAll" aria-label="Contraer todo" title="Contraer todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button><button class="ib" id="expAll" aria-label="Expandir todo" title="Expandir todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button></span></div><div id="list"></div></section>
   <section class="panel" id="tl">
-    <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT" aria-label="Línea temporal" title="Línea temporal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="10" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="9" y="10.2" width="12" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="5" y="15.4" width="9" height="3.6" rx="1.6" fill="currentColor" stroke="none"/></svg><span>Línea temporal</span></button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA" aria-label="Agenda" title="Agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7H20"/><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 12H20"/><circle cx="5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 17H20"/></svg><span>Agenda</span></button></div>
+    <div class="vt" role="tablist"><button role="tab" id="tabT" aria-selected="true" aria-controls="viewT" aria-label="Línea temporal" title="Línea temporal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="10" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="9" y="10.2" width="12" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="5" y="15.4" width="9" height="3.6" rx="1.6" fill="currentColor" stroke="none"/></svg><span>Línea temporal</span></button><button role="tab" id="tabA" aria-selected="false" aria-controls="viewA" aria-label="Agenda" title="Agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7H20"/><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 12H20"/><circle cx="5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 17H20"/></svg><span>Agenda</span></button><button role="tab" id="tabS" aria-selected="false" aria-controls="viewS" aria-label="Temporada" title="Temporada"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16M15 4v16"/></svg><span>Temporada</span></button><button class="ib vtx" id="repeatBtn" type="button" aria-label="Repetir semana" title="Repetir esta semana en las siguientes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg></button></div>
     <div class="tlbody" id="tlbody">
     <div id="viewT"><div id="scroll"><div id="days"></div></div></div>
     <div id="viewA" hidden>
       <div class="ahead"><button class="ib" id="copyA" aria-label="Copiar agenda" title="Copiar agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button class="ib" id="icsA" aria-label="Descargar calendario (.ics)" title="Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5l2.5 2.5 2.5-2.5"/></svg></button><span class="status" id="copymsg" role="status"></span></div>
       <div id="agenda"></div>
+    </div>
+    <div id="viewS" hidden>
+      <div class="shead" id="shead"></div>
+      <div id="season"></div>
     </div>
     <details><summary>Notas sobre los datos</summary>
       <p>Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación.</p>
@@ -219,6 +253,30 @@ details{margin-top:12px;font-size:13px;color:var(--mute)}
     <div id="sum"></div>
   </section>
 </main>
+
+<div class="ov" id="avov" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="avt">
+    <div class="dh2"><div><h2 id="avt">Disponibilidad por día</h2><p class="status" id="avintro">Elige cuándo puedes correr cada día. «Igual que Desde/Hasta» usa el filtro general. Fuera de tu disponibilidad, la lista no muestra carreras y la línea temporal queda atenuada.</p></div><button class="ib" id="avclose" aria-label="Cerrar" title="Cerrar">×</button></div>
+    <div class="fbody" id="avbody"></div>
+    <div class="dfoot"><button id="avreset">Restablecer todo</button><button id="avok">Cerrar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="repov" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="rept">
+    <div class="dh2"><div><h2 id="rept">Repetir esta semana</h2><p class="status" id="repintro"></p></div><button class="ib" id="repclose" aria-label="Cerrar" title="Cerrar">×</button></div>
+    <div class="repbody">
+      <label id="repnl">Repetir en las próximas<select id="repn"></select></label>
+      <label class="chk"><input type="checkbox" id="repman" checked> Incluir bloques personalizados</label>
+      <label class="chk"><input type="radio" name="repmode" id="repadd" checked> Añadir a lo que ya haya</label>
+      <label class="chk"><input type="radio" name="repmode" id="reprep"> Sustituir lo que haya en esas semanas</label>
+      <p class="status" id="reppv" role="status"></p>
+    </div>
+    <div class="dfoot"><button id="repcancel">Cancelar</button><button id="repgo" class="fall">Repetir</button></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
 
 <div class="ov" id="fixov" hidden>
   <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="fixt">
@@ -419,9 +477,9 @@ const LANGKEY='iracing-planner-lang';
 let LANG='es',appReady=false;
 try{const l=localStorage.getItem(LANGKEY);if(l==='en'||l==='es')LANG=l}catch(e){}
 const LOC=()=>LANG==='en'?'en-GB':'es-ES';
-const EN={"Mostrar u ocultar la lista de carreras": "Show or hide the race list", "Lista de carreras": "Race list", "Filtros": "Filters", "Datos": "Data", "Crear bloque personalizado": "Create custom block", "Bloque personalizado": "Custom block", "Quitar todos los filtros": "Clear all filters", "Exportar plan": "Export plan", "Exportar plan: descarga tu plan y tus ajustes como archivo": "Export plan: download your plan and settings as a file", "Importar plan": "Import plan", "Importar plan: carga un plan exportado desde otro navegador": "Import plan: load a plan exported from another browser", "Vaciar plan": "Clear plan", "Ej. Cena, entrenamiento…": "E.g. Dinner, workout…", "Ocultar la lista": "Hide the list", "Buscar serie o circuito": "Search series or track", "Contraer todo": "Collapse all", "Expandir todo": "Expand all", "Línea temporal": "Timeline", "Agenda": "Agenda", "Copiar agenda": "Copy agenda", "Descargar calendario (.ics)": "Download calendar (.ics)", "Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook": "Download calendar (.ics) for Google Calendar, Apple Calendar or Outlook", "Cerrar": "Close", "Buscar serie": "Search series", "Valida todas las series pendientes de la lista, con los valores que se ven": "Validates all pending series in the list, using the values shown", "Validar todo": "Validate all", "Confirmar horarios": "Confirm schedules", "Semana (martes a lunes)": "Week (Tuesday to Monday)", "Desde": "From", "Hasta": "To", "Licencia": "License", "Categoría": "Category", "Margen": "Margin", "Día": "Day", "Inicio": "Start", "Fin": "End", "Descripción": "Description", "Todas": "All", "Sin margen": "No margin", "Añadir bloque": "Add block", "Carreras disponibles": "Available races", "Notas sobre los datos": "Notes on the data", "Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación.": "Block length = race length + 10 min (qualifying and start). Races defined by laps are marked “≈”: the PDF gives no lap time, so it is an estimate.", "El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC.": "The PDF does not say what time these series start, so it has been assumed. Check the real schedule, choose and tick <b>Validated</b>: it is saved instantly and applied to the list and your plan. Times are UTC.", "Solo pendientes": "Pending only", "Validado": "Validated", "Lun": "Mon", "Mar": "Tue", "Mié": "Wed", "Jue": "Thu", "Vie": "Fri", "Sáb": "Sat", "Dom": "Sun", "En otros días de esta semana": "On other days this week", "Ver {0}: {1} salidas desde las {2}": "View {0}: {1} starts from {2}", "Ver {0}: {1} salida desde las {2}": "View {0}: {1} start from {2}", "licencia {0}": "license {0}", "Aún no hay calendario: coloca SeasonSchedule.pdf junto a este archivo y recarga la página.": "No calendar yet: place SeasonSchedule.pdf next to this file and reload the page.", "No hay carreras con esos filtros para este día.": "No races match these filters on this day.", "Arrastra al plan": "Drag to your plan", "Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo": "Schedule to confirm: the PDF does not say what time it starts (assumed). Click to confirm", "Confirmar el horario de {0}": "Confirm the schedule of {0}", "{0} en plan": "{0} in plan", "Ya en tu plan: {0}": "Already in your plan: {0}", "↻ repetida": "↻ repeated", "↻ Esta serie ya está en tu plan: {0}": "↻ This series is already in your plan: {0}", "Duplicar bloque": "Duplicate block", "Duplicar bloque (Ctrl+D)": "Duplicate block (Ctrl+D)", "Quitar del plan": "Remove from plan", "{0} carrera": "{0} race", "{0} carreras": "{0} races", "{0} manual": "{0} manual", "{0} manuales": "{0} manual", "{0} fuera del rango horario": "{0} outside the time range", "sin carreras": "no races", "Ver las carreras de este día": "Show the races for this day", "carrera": "race", "carreras": "races", "manual": "manual", "manuales": "manual", "de carrera": "racing", "Elige un día y pulsa una hora de la lista para añadir la carrera a tu plan.": "Pick a day and click a time in the list to add the race to your plan.", "{0} carreras se solapan (en rojo)": "{0} races overlap (in red)", "↻ Series repetidas:": "↻ Repeated series:", "Indica una hora de inicio y otra de fin distintas.": "Enter different start and end times.", "Bloque manual": "Manual block", "Bloque personal": "Personal block", "hoy": "today", "{0} elemento": "{0} item", "{0} elementos": "{0} items", "⚠ solapa": "⚠ overlaps", "⚠ horario por confirmar": "⚠ schedule to confirm", "Confirmar el horario de esta serie": "Confirm the schedule of this series", "Todavía no has planificado nada esta semana. Añade carreras desde la lista o crea un bloque personalizado.": "You haven't planned anything this week yet. Add races from the list or create a custom block.", "Horas en": "Times in", "Sin carreras planificadas esta semana.": "No races planned this week.", "personal": "personal", "horario por confirmar": "schedule to confirm", "Horario por confirmar": "Schedule to confirm", "min de carrera": "min of racing", "Personal": "Personal", "No hay nada que descargar esta semana": "Nothing to download this week", "Calendario descargado ({0} evento)": "Calendar downloaded ({0} event)", "Calendario descargado ({0} eventos)": "Calendar downloaded ({0} events)", "Agenda copiada ✓": "Agenda copied ✓", "No se pudo copiar": "Could not copy", "Sin carrera de esta serie este día": "No race of this series on this day", "suelta en el día y la hora": "drop on the day and time", "Semana {0}": "Week {0}", "Semana actual": "Current week", "Planificador semanal iRacing": "iRacing Weekly Planner", "Confirmar horarios ({0} pendientes)": "Confirm schedules ({0} pending)", "Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.": "No calendar. Place SeasonSchedule.pdf next to this file and reload the page.", "Calendario: {0} · {1} series · del {2} al {3} · horas en tu zona horaria": "Calendar: {0} · {1} series · from {2} to {3} · times in your time zone", "{0} series con horario por confirmar": "{0} series with schedule to confirm", "{0} horario validado": "{0} schedule validated", "{0} horarios validados": "{0} schedules validated", "Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: {0}.": "Series without specific times in the PDF (they only say “timeslots per week”), so they do not appear: {0}.", "ninguna": "none", "Datos · hay un aviso": "Data · there is a notice", "Este navegador no permite guardar tu plan (almacenamiento bloqueado).": "This browser does not allow saving your plan (storage blocked).", "Plan exportado ({0} bloque).": "Plan exported ({0} block).", "Plan exportado ({0} bloques).": "Plan exported ({0} blocks).", "el archivo no es un plan exportado por esta aplicación": "the file is not a plan exported by this app", "Importar sustituirá tu plan y tus ajustes actuales. ¿Continuar?": "Importing will replace your current plan and settings. Continue?", "Plan importado ({0} bloque).": "Plan imported ({0} block).", "Plan importado ({0} bloques).": "Plan imported ({0} blocks).", "{0} carreras no existen en el calendario actual y se han omitido.": "{0} races do not exist in the current calendar and were skipped.", "{0} carrera no existe en el calendario actual y se ha omitido.": "{0} race does not exist in the current calendar and was skipped.", "No se pudo importar: {0}.": "Could not import: {0}.", "el archivo no es un JSON válido": "the file is not valid JSON", "{0} no es un JSON válido: se ignora.": "{0} is not valid JSON: ignored.", "{0} carreras de tu plan se han quitado porque su horario cambió con las correcciones.": "{0} races were removed from your plan because their schedule changed with the corrections.", "{0} carrera de tu plan se ha quitado porque su horario cambió con las correcciones.": "{0} race was removed from your plan because its schedule changed with the corrections.", "El PDF solo indica «timeslots por semana», sin horas": "The PDF only says “timeslots per week”, with no times", "Horario semanal": "Weekly schedule", "Cada 2 horas, a los :{0}": "Every 2 hours, at :{0}", "Cada hora": "Every hour", "Cada 30 minutos": "Every 30 minutes", "Horas de salida (UTC)": "Start times (UTC)", "Mar 19:00, Sáb 12:30": "Tue 19:00, Sat 12:30", "Horas": "Hours", "Pares": "Even", "Impares": "Odd", "Minutos": "Minutes", ":00 y :30": ":00 and :30", ":15 y :45": ":15 and :45", "Minuto": "Minute", "fijado en SchedulePatches.json": "set in SchedulePatches.json", "Validadas {0} de {1}": "Validated {0} of {1}", "Ninguna serie coincide con la búsqueda.": "No series match the search.", "No quedan horarios por confirmar.": "No schedules left to confirm.", "No entiendo esas horas. Escribe, por ejemplo: {0}": "I don't understand those times. Write, for example: {0}", "Guardado.": "Saved.", "Validación quitada.": "Validation removed.", "{0} carreras de tu plan se han quitado porque su horario cambió.": "{0} races were removed from your plan because their schedule changed.", "{0} carrera de tu plan se ha quitado porque su horario cambió.": "{0} race was removed from your plan because its schedule changed.", "No hay series pendientes en la lista.": "There are no pending series in the list.", "{0} sin validar: faltan las horas.": "{0} not validated: times missing.", "Se validarán {0} series con los valores que ves en la lista": "Will validate {0} series with the values shown in the list", "Se validará {0} serie con los valores que ves en la lista": "Will validate {0} series with the values shown in the list", "({0} se quedan pendientes por falta de horas)": "({0} stay pending for lack of times)", ". ¿Continuar?": ". Continue?", "{0} validada.": "{0} validated.", "{0} validadas.": "{0} validated.", "{0} carreras de tu plan ya no existen en el nuevo calendario y se han quitado.": "{0} races in your plan no longer exist in the new calendar and were removed.", "{0} carrera de tu plan ya no existe en el nuevo calendario y se ha quitado.": "{0} race in your plan no longer exists in the new calendar and was removed.", "el lector de PDF no está disponible": "the PDF reader is not available", "no encuentro {0} junto al HTML": "can't find {0} next to the HTML", "error {0}": "error {0}", "Leyendo calendario…": "Reading calendar…", "Leyendo calendario… página {0} de {1}": "Reading calendar… page {0} of {1}", "no reconozco el formato del calendario de iRacing": "I don't recognize the iRacing calendar format", "Calendario actualizado: {0} series, {1} semanas.": "Calendar updated: {0} series, {1} weeks.", "El navegador no permite leer {0} si el HTML se abre con doble clic: sirve la carpeta desde un servidor web (p. ej. «python -m http.server») o súbela a tu alojamiento.": "The browser does not allow reading {0} when the HTML is opened by double-click: serve the folder from a web server (e.g. “python -m http.server”) or upload it to your hosting.", "No se pudo leer {0}: {1}.": "Could not read {0}: {1}.", "Se usa el último calendario guardado.": "Using the last saved calendar."};
+const EN={"Mostrar u ocultar la lista de carreras": "Show or hide the race list", "Lista de carreras": "Race list", "Filtros": "Filters", "Datos": "Data", "Crear bloque personalizado": "Create custom block", "Bloque personalizado": "Custom block", "Quitar todos los filtros": "Clear all filters", "Exportar plan": "Export plan", "Exportar plan: descarga tu plan y tus ajustes como archivo": "Export plan: download your plan and settings as a file", "Importar plan": "Import plan", "Importar plan: carga un plan exportado desde otro navegador": "Import plan: load a plan exported from another browser", "Vaciar plan": "Clear plan", "Ej. Cena, entrenamiento…": "E.g. Dinner, workout…", "Ocultar la lista": "Hide the list", "Buscar serie o circuito": "Search series or track", "Contraer todo": "Collapse all", "Expandir todo": "Expand all", "Línea temporal": "Timeline", "Agenda": "Agenda", "Copiar agenda": "Copy agenda", "Descargar calendario (.ics)": "Download calendar (.ics)", "Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook": "Download calendar (.ics) for Google Calendar, Apple Calendar or Outlook", "Cerrar": "Close", "Buscar serie": "Search series", "Valida todas las series pendientes de la lista, con los valores que se ven": "Validates all pending series in the list, using the values shown", "Validar todo": "Validate all", "Confirmar horarios": "Confirm schedules", "Semana (martes a lunes)": "Week (Tuesday to Monday)", "Desde": "From", "Hasta": "To", "Licencia": "License", "Categoría": "Category", "Margen": "Margin", "Día": "Day", "Inicio": "Start", "Fin": "End", "Descripción": "Description", "Todas": "All", "Sin margen": "No margin", "Añadir bloque": "Add block", "Carreras disponibles": "Available races", "Notas sobre los datos": "Notes on the data", "Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación.": "Block length = race length + 10 min (qualifying and start). Races defined by laps are marked “≈”: the PDF gives no lap time, so it is an estimate.", "El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC.": "The PDF does not say what time these series start, so it has been assumed. Check the real schedule, choose and tick <b>Validated</b>: it is saved instantly and applied to the list and your plan. Times are UTC.", "Solo pendientes": "Pending only", "Validado": "Validated", "Lun": "Mon", "Mar": "Tue", "Mié": "Wed", "Jue": "Thu", "Vie": "Fri", "Sáb": "Sat", "Dom": "Sun", "En otros días de esta semana": "On other days this week", "Ver {0}: {1} salidas desde las {2}": "View {0}: {1} starts from {2}", "Ver {0}: {1} salida desde las {2}": "View {0}: {1} start from {2}", "licencia {0}": "license {0}", "Aún no hay calendario: coloca SeasonSchedule.pdf junto a este archivo y recarga la página.": "No calendar yet: place SeasonSchedule.pdf next to this file and reload the page.", "No hay carreras con esos filtros para este día.": "No races match these filters on this day.", "Arrastra al plan": "Drag to your plan", "Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo": "Schedule to confirm: the PDF does not say what time it starts (assumed). Click to confirm", "Confirmar el horario de {0}": "Confirm the schedule of {0}", "{0} en plan": "{0} in plan", "Ya en tu plan: {0}": "Already in your plan: {0}", "↻ repetida": "↻ repeated", "↻ Esta serie ya está en tu plan: {0}": "↻ This series is already in your plan: {0}", "Duplicar bloque": "Duplicate block", "Duplicar bloque (Ctrl+D)": "Duplicate block (Ctrl+D)", "Quitar del plan": "Remove from plan", "{0} carrera": "{0} race", "{0} carreras": "{0} races", "{0} manual": "{0} manual", "{0} manuales": "{0} manual", "{0} fuera del rango horario": "{0} outside the time range", "sin carreras": "no races", "Ver las carreras de este día": "Show the races for this day", "carrera": "race", "carreras": "races", "manual": "manual", "manuales": "manual", "de carrera": "racing", "Elige un día y pulsa una hora de la lista para añadir la carrera a tu plan.": "Pick a day and click a time in the list to add the race to your plan.", "{0} carreras se solapan (en rojo)": "{0} races overlap (in red)", "↻ Series repetidas:": "↻ Repeated series:", "Indica una hora de inicio y otra de fin distintas.": "Enter different start and end times.", "Bloque manual": "Manual block", "Bloque personal": "Personal block", "hoy": "today", "{0} elemento": "{0} item", "{0} elementos": "{0} items", "⚠ solapa": "⚠ overlaps", "⚠ horario por confirmar": "⚠ schedule to confirm", "Confirmar el horario de esta serie": "Confirm the schedule of this series", "Todavía no has planificado nada esta semana. Añade carreras desde la lista o crea un bloque personalizado.": "You haven't planned anything this week yet. Add races from the list or create a custom block.", "Horas en": "Times in", "Sin carreras planificadas esta semana.": "No races planned this week.", "personal": "personal", "horario por confirmar": "schedule to confirm", "Horario por confirmar": "Schedule to confirm", "min de carrera": "min of racing", "Personal": "Personal", "No hay nada que descargar esta semana": "Nothing to download this week", "Calendario descargado ({0} evento)": "Calendar downloaded ({0} event)", "Calendario descargado ({0} eventos)": "Calendar downloaded ({0} events)", "Agenda copiada ✓": "Agenda copied ✓", "No se pudo copiar": "Could not copy", "Sin carrera de esta serie este día": "No race of this series on this day", "suelta en el día y la hora": "drop on the day and time", "Semana {0}": "Week {0}", "Semana actual": "Current week", "Planificador semanal iRacing": "iRacing Weekly Planner", "Confirmar horarios ({0} pendientes)": "Confirm schedules ({0} pending)", "Sin calendario. Coloca SeasonSchedule.pdf junto a este archivo y recarga la página.": "No calendar. Place SeasonSchedule.pdf next to this file and reload the page.", "Calendario: {0} · {1} series · del {2} al {3} · horas en tu zona horaria": "Calendar: {0} · {1} series · from {2} to {3} · times in your time zone", "{0} series con horario por confirmar": "{0} series with schedule to confirm", "{0} horario validado": "{0} schedule validated", "{0} horarios validados": "{0} schedules validated", "Series sin horarios concretos en el PDF (solo indican «timeslots por semana»), por lo que no aparecen: {0}.": "Series without specific times in the PDF (they only say “timeslots per week”), so they do not appear: {0}.", "ninguna": "none", "Datos · hay un aviso": "Data · there is a notice", "Este navegador no permite guardar tu plan (almacenamiento bloqueado).": "This browser does not allow saving your plan (storage blocked).", "Plan exportado ({0} bloque).": "Plan exported ({0} block).", "Plan exportado ({0} bloques).": "Plan exported ({0} blocks).", "el archivo no es un plan exportado por esta aplicación": "the file is not a plan exported by this app", "Importar sustituirá tu plan y tus ajustes actuales. ¿Continuar?": "Importing will replace your current plan and settings. Continue?", "Plan importado ({0} bloque).": "Plan imported ({0} block).", "Plan importado ({0} bloques).": "Plan imported ({0} blocks).", "{0} carreras no existen en el calendario actual y se han omitido.": "{0} races do not exist in the current calendar and were skipped.", "{0} carrera no existe en el calendario actual y se ha omitido.": "{0} race does not exist in the current calendar and was skipped.", "No se pudo importar: {0}.": "Could not import: {0}.", "el archivo no es un JSON válido": "the file is not valid JSON", "{0} no es un JSON válido: se ignora.": "{0} is not valid JSON: ignored.", "{0} carreras de tu plan se han quitado porque su horario cambió con las correcciones.": "{0} races were removed from your plan because their schedule changed with the corrections.", "{0} carrera de tu plan se ha quitado porque su horario cambió con las correcciones.": "{0} race was removed from your plan because its schedule changed with the corrections.", "El PDF solo indica «timeslots por semana», sin horas": "The PDF only says “timeslots per week”, with no times", "Horario semanal": "Weekly schedule", "Cada 2 horas, a los :{0}": "Every 2 hours, at :{0}", "Cada hora": "Every hour", "Cada 30 minutos": "Every 30 minutes", "Horas de salida (UTC)": "Start times (UTC)", "Mar 19:00, Sáb 12:30": "Tue 19:00, Sat 12:30", "Horas": "Hours", "Pares": "Even", "Impares": "Odd", "Minutos": "Minutes", ":00 y :30": ":00 and :30", ":15 y :45": ":15 and :45", "Minuto": "Minute", "fijado en SchedulePatches.json": "set in SchedulePatches.json", "Validadas {0} de {1}": "Validated {0} of {1}", "Ninguna serie coincide con la búsqueda.": "No series match the search.", "No quedan horarios por confirmar.": "No schedules left to confirm.", "No entiendo esas horas. Escribe, por ejemplo: {0}": "I don't understand those times. Write, for example: {0}", "Guardado.": "Saved.", "Validación quitada.": "Validation removed.", "{0} carreras de tu plan se han quitado porque su horario cambió.": "{0} races were removed from your plan because their schedule changed.", "{0} carrera de tu plan se ha quitado porque su horario cambió.": "{0} race was removed from your plan because its schedule changed.", "No hay series pendientes en la lista.": "There are no pending series in the list.", "{0} sin validar: faltan las horas.": "{0} not validated: times missing.", "Se validarán {0} series con los valores que ves en la lista": "Will validate {0} series with the values shown in the list", "Se validará {0} serie con los valores que ves en la lista": "Will validate {0} series with the values shown in the list", "({0} se quedan pendientes por falta de horas)": "({0} stay pending for lack of times)", ". ¿Continuar?": ". Continue?", "{0} validada.": "{0} validated.", "{0} validadas.": "{0} validated.", "{0} carreras de tu plan ya no existen en el nuevo calendario y se han quitado.": "{0} races in your plan no longer exist in the new calendar and were removed.", "{0} carrera de tu plan ya no existe en el nuevo calendario y se ha quitado.": "{0} race in your plan no longer exists in the new calendar and was removed.", "el lector de PDF no está disponible": "the PDF reader is not available", "no encuentro {0} junto al HTML": "can't find {0} next to the HTML", "error {0}": "error {0}", "Leyendo calendario…": "Reading calendar…", "Leyendo calendario… página {0} de {1}": "Reading calendar… page {0} of {1}", "no reconozco el formato del calendario de iRacing": "I don't recognize the iRacing calendar format", "Calendario actualizado: {0} series, {1} semanas.": "Calendar updated: {0} series, {1} weeks.", "El navegador no permite leer {0} si el HTML se abre con doble clic: sirve la carpeta desde un servidor web (p. ej. «python -m http.server») o súbela a tu alojamiento.": "The browser does not allow reading {0} when the HTML is opened by double-click: serve the folder from a web server (e.g. “python -m http.server”) or upload it to your hosting.", "No se pudo leer {0}: {1}.": "Could not read {0}: {1}.", "Se usa el último calendario guardado.": "Using the last saved calendar.", "Temporada": "Season", "Repetir semana": "Repeat week", "Repetir esta semana en las siguientes": "Repeat this week on the following ones", "Solo favoritas": "Favorites only", "Disponibilidad por día": "Availability by day", "Disponibilidad por día: elige cuándo puedes correr cada día": "Availability by day: choose when you can race each day", "Elige cuándo puedes correr cada día. «Igual que Desde/Hasta» usa el filtro general. Fuera de tu disponibilidad, la lista no muestra carreras y la línea temporal queda atenuada.": "Choose when you can race each day. “Same as From/To” uses the general filter. Outside your availability the list shows no races and the timeline is dimmed.", "Restablecer todo": "Reset all", "Repetir esta semana": "Repeat this week", "Repetir en las próximas": "Repeat for the next", "Incluir bloques personalizados": "Include custom blocks", "Añadir a lo que ya haya": "Add to what is already there", "Sustituir lo que haya en esas semanas": "Replace what is in those weeks", "Repetir": "Repeat", "Cancelar": "Cancel", "Añadir a favoritas": "Add to favorites", "Quitar de favoritas": "Remove from favorites", "No tienes series favoritas con estos filtros. Marca la estrella ☆ de una serie para añadirla.": "You have no favorite series with these filters. Click the ☆ star on a series to add it.", "Has marcado este día como no disponible.": "You marked this day as not available.", "Igual que Desde/Hasta ({0})": "Same as From/To ({0})", "Personalizada": "Custom", "No disponible": "Not available", "Carga el calendario para ver la temporada.": "Load the calendar to see the season.", "Serie": "Series", "S{0}": "W{0}", "{0} series": "{0} series", "Ver la semana {0}": "Go to week {0}", "No hay series con esos filtros.": "No series match these filters.", "En plan: {0}": "In plan: {0}", "Ahora": "Now", "No hay nada planificado esta semana para repetir.": "There is nothing planned this week to repeat.", "No quedan semanas posteriores en la temporada.": "There are no later weeks left in the season.", "{0} semana": "{0} week", "{0} semanas": "{0} weeks", "Copia lo que tienes planificado en la semana {0} a las semanas siguientes.": "Copies what you have planned in week {0} onto the following weeks.", "Se copiarán {0} y {1} a {2}.": "Will copy {0} and {1} to {2}.", "{0} bloque personalizado": "{0} custom block", "{0} bloques personalizados": "{0} custom blocks", "la semana {0}": "week {0}", "las semanas {0}–{1}": "weeks {0}–{1}", "{0} carrera no existe en esas semanas y se omitirá.": "{0} race does not exist in those weeks and will be skipped.", "{0} carreras no existen en esas semanas y se omitirán.": "{0} races do not exist in those weeks and will be skipped.", "Se quitará {0} elemento que ya había en esas semanas.": "{0} item already in those weeks will be removed.", "Se quitarán {0} elementos que ya había en esas semanas.": "{0} items already in those weeks will be removed.", "Hecho: {0} y {1} añadidos a {2}.": "Done: {0} and {1} added to {2}."};
 const t=(k,...a)=>{const s=LANG==='en'&&EN[k]!==undefined?EN[k]:k;return a.length?s.replace(/\{(\d+)\}/g,(m,i)=>a[+i]):s};
-const STATIC=[["#tgS", "aria-label", "Mostrar u ocultar la lista de carreras"], ["#tgS", "title", "Lista de carreras"], ["#tgF", "aria-label", "Filtros"], ["#tgD", "aria-label", "Datos"], ["#tgM", "aria-label", "Crear bloque personalizado"], ["#tgM", "title", "Bloque personalizado"], ["#resetF", "aria-label", "Quitar todos los filtros"], ["#resetF", "title", "Quitar todos los filtros"], ["#exp", "aria-label", "Exportar plan"], ["#exp", "title", "Exportar plan: descarga tu plan y tus ajustes como archivo"], ["#imp", "aria-label", "Importar plan"], ["#imp", "title", "Importar plan: carga un plan exportado desde otro navegador"], ["#clear", "aria-label", "Vaciar plan"], ["#clear", "title", "Vaciar plan"], ["#mdesc", "placeholder", "Ej. Cena, entrenamiento…"], ["#hideSide", "aria-label", "Ocultar la lista"], ["#hideSide", "title", "Ocultar la lista"], ["#q", "placeholder", "Buscar serie o circuito"], ["#q", "aria-label", "Buscar serie o circuito"], ["#colAll", "aria-label", "Contraer todo"], ["#colAll", "title", "Contraer todo"], ["#expAll", "aria-label", "Expandir todo"], ["#expAll", "title", "Expandir todo"], ["#tabT", "aria-label", "Línea temporal"], ["#tabT", "title", "Línea temporal"], ["#tabT span", "text", "Línea temporal"], ["#tabA", "aria-label", "Agenda"], ["#tabA", "title", "Agenda"], ["#tabA span", "text", "Agenda"], ["#copyA", "aria-label", "Copiar agenda"], ["#copyA", "title", "Copiar agenda"], ["#icsA", "aria-label", "Descargar calendario (.ics)"], ["#icsA", "title", "Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook"], ["#fixclose", "aria-label", "Cerrar"], ["#fixclose", "title", "Cerrar"], ["#fixok", "text", "Cerrar"], ["#fixq", "placeholder", "Buscar serie"], ["#fixq", "aria-label", "Buscar serie"], ["#fixall", "title", "Valida todas las series pendientes de la lista, con los valores que se ven"], ["#fixall", "lasttext", "Validar todo"], ["#fixt", "text", "Confirmar horarios"], ["#day", "label", "Semana (martes a lunes)"], ["#from", "label", "Desde"], ["#to", "label", "Hasta"], ["#lic", "label", "Licencia"], ["#cat", "label", "Categoría"], ["#gap", "label", "Margen"], ["#mday", "label", "Día"], ["#mfrom", "label", "Inicio"], ["#mto", "label", "Fin"], ["#mdesc", "label", "Descripción"], ["#lic option:first-child", "text", "Todas"], ["#cat option:first-child", "text", "Todas"], ["#gap option:first-child", "text", "Sin margen"], ["#madd", "text", "Añadir bloque"], ["#side h2", "lasttext", "Carreras disponibles"], ["details summary", "text", "Notas sobre los datos"], ["#tlbody details p:first-of-type", "html", "Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación."], [".dh2 p.status", "html", "El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC."], [".fonly", "lasttext", "Solo pendientes"]];
+const STATIC=[["#tgS", "aria-label", "Mostrar u ocultar la lista de carreras"], ["#tgS", "title", "Lista de carreras"], ["#tgF", "aria-label", "Filtros"], ["#tgD", "aria-label", "Datos"], ["#tgM", "aria-label", "Crear bloque personalizado"], ["#tgM", "title", "Bloque personalizado"], ["#resetF", "aria-label", "Quitar todos los filtros"], ["#resetF", "title", "Quitar todos los filtros"], ["#exp", "aria-label", "Exportar plan"], ["#exp", "title", "Exportar plan: descarga tu plan y tus ajustes como archivo"], ["#imp", "aria-label", "Importar plan"], ["#imp", "title", "Importar plan: carga un plan exportado desde otro navegador"], ["#clear", "aria-label", "Vaciar plan"], ["#clear", "title", "Vaciar plan"], ["#mdesc", "placeholder", "Ej. Cena, entrenamiento…"], ["#hideSide", "aria-label", "Ocultar la lista"], ["#hideSide", "title", "Ocultar la lista"], ["#q", "placeholder", "Buscar serie o circuito"], ["#q", "aria-label", "Buscar serie o circuito"], ["#colAll", "aria-label", "Contraer todo"], ["#colAll", "title", "Contraer todo"], ["#expAll", "aria-label", "Expandir todo"], ["#expAll", "title", "Expandir todo"], ["#tabT", "aria-label", "Línea temporal"], ["#tabT", "title", "Línea temporal"], ["#tabT span", "text", "Línea temporal"], ["#tabA", "aria-label", "Agenda"], ["#tabA", "title", "Agenda"], ["#tabA span", "text", "Agenda"], ["#copyA", "aria-label", "Copiar agenda"], ["#copyA", "title", "Copiar agenda"], ["#icsA", "aria-label", "Descargar calendario (.ics)"], ["#icsA", "title", "Descargar calendario (.ics) para Google Calendar, Apple Calendar u Outlook"], ["#fixclose", "aria-label", "Cerrar"], ["#fixclose", "title", "Cerrar"], ["#fixok", "text", "Cerrar"], ["#fixq", "placeholder", "Buscar serie"], ["#fixq", "aria-label", "Buscar serie"], ["#fixall", "title", "Valida todas las series pendientes de la lista, con los valores que se ven"], ["#fixall", "lasttext", "Validar todo"], ["#fixt", "text", "Confirmar horarios"], ["#day", "label", "Semana (martes a lunes)"], ["#from", "label", "Desde"], ["#to", "label", "Hasta"], ["#lic", "label", "Licencia"], ["#cat", "label", "Categoría"], ["#gap", "label", "Margen"], ["#mday", "label", "Día"], ["#mfrom", "label", "Inicio"], ["#mto", "label", "Fin"], ["#mdesc", "label", "Descripción"], ["#lic option:first-child", "text", "Todas"], ["#cat option:first-child", "text", "Todas"], ["#gap option:first-child", "text", "Sin margen"], ["#madd", "text", "Añadir bloque"], ["#side h2", "lasttext", "Carreras disponibles"], ["details summary", "text", "Notas sobre los datos"], ["#tlbody details p:first-of-type", "html", "Duración del bloque = duración de la carrera + 10 min (calificación y salida). Las carreras definidas por vueltas llevan «≈»: el PDF no da el tiempo por vuelta, así que es una estimación."], [".dh2 p.status", "html", "El PDF no indica a qué hora empiezan estas series, así que se ha supuesto. Comprueba el horario real, elige y marca <b>Validado</b>: se guarda al instante y se aplica en la lista y en tu plan. Las horas son UTC."], [".fonly", "lasttext", "Solo pendientes"], ["#tabS", "aria-label", "Temporada"], ["#tabS", "title", "Temporada"], ["#tabS span", "text", "Temporada"], ["#repeatBtn", "aria-label", "Repetir semana"], ["#repeatBtn", "title", "Repetir esta semana en las siguientes"], ["#favOnly", "aria-label", "Solo favoritas"], ["#favOnly", "title", "Solo favoritas"], ["#avBtn", "aria-label", "Disponibilidad por día"], ["#avBtn", "title", "Disponibilidad por día: elige cuándo puedes correr cada día"], ["#avt", "text", "Disponibilidad por día"], ["#avintro", "text", "Elige cuándo puedes correr cada día. «Igual que Desde/Hasta» usa el filtro general. Fuera de tu disponibilidad, la lista no muestra carreras y la línea temporal queda atenuada."], ["#avreset", "text", "Restablecer todo"], ["#avok", "text", "Cerrar"], ["#avclose", "aria-label", "Cerrar"], ["#avclose", "title", "Cerrar"], ["#rept", "text", "Repetir esta semana"], ["#repclose", "aria-label", "Cerrar"], ["#repclose", "title", "Cerrar"], ["#repn", "label", "Repetir en las próximas"], ["#repman", "label", "Incluir bloques personalizados"], ["#repadd", "label", "Añadir a lo que ya haya"], ["#reprep", "label", "Sustituir lo que haya en esas semanas"], ["#repcancel", "text", "Cancelar"], ["#repgo", "text", "Repetir"]];
 function applyStatic(){
   for(const [sel,prop,key] of STATIC){
     const els=document.querySelectorAll(sel);
@@ -440,14 +498,14 @@ function setLang(l){
   document.documentElement.lang=l;
   $('lgES').setAttribute('aria-pressed',l==='es');$('lgEN').setAttribute('aria-pressed',l==='en');
   applyStatic();
-  if(appReady){delete $('mday').dataset.sig;buildWeeks();applyTitle();refreshInfo();render();if(!$('fixov').hidden)renderFix()}
+  if(appReady){delete $('mday').dataset.sig;buildWeeks();applyTitle();refreshInfo();render();if(!$('fixov').hidden)renderFix();if(!$('avov').hidden)renderAv()}
 }
 $('lgES').onclick=()=>setLang('es');$('lgEN').onclick=()=>setLang('en');
 
 const col=l=>'var(--'+l+')';
 const ORD={R:0,D:1,C:2,B:3,A:4};
-const ui={f:false,d:false,m:false,s:true,v:'T'};
-let plan=new Map(), preview=null, expanded=new Set(), shown=[];
+const ui={f:false,d:false,m:false,s:true,v:'T',fo:false};
+let plan=new Map(), preview=null, expanded=new Set(), shown=[], fav=new Set(), AV={};
 
 function zoned(y,mo,d,h,mi,tz){
   const f=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'});
@@ -521,16 +579,167 @@ function toggle(r,t){const k=key(r,t);plan.has(k)?plan.delete(k):plan.set(k,{r,t
 const mod=d=>d.getHours()*60+d.getMinutes();
 const tmin=v=>{const [h,m]=v.split(':').map(Number);return h*60+m};
 
-function otherDaysBlock(q,f,to,here){
+/* ===== Favoritas ===== */
+function toggleFav(name){fav.has(name)?fav.delete(name):fav.add(name);render()}
+const starHtml=n=>`<span class="star${fav.has(n)?' on':''}" role="button" tabindex="0" aria-pressed="${fav.has(n)}" title="${esc(t(fav.has(n)?'Quitar de favoritas':'Añadir a favoritas'))}">${fav.has(n)?'★':'☆'}</span>`;
+function bindStar(el,name){
+  const sw=el.querySelector('.star');if(!sw)return;
+  const go=e=>{e.stopPropagation();toggleFav(name)};
+  sw.onpointerdown=e=>e.stopPropagation();sw.onclick=go;
+  sw.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e)}};
+}
+$('favOnly').onclick=()=>{ui.fo=!ui.fo;applyUi();render()};
+
+/* ===== Disponibilidad por día ===== */
+const wdOf=ms=>(new Date(ms).getDay()+6)%7;
+function winFor(di){
+  const a=AV[wdOf(di.d0)];
+  if(a&&a.m==='off')return {off:true,f:0,to:0};
+  if(a&&a.m==='c')return {off:false,f:tmin(a.f),to:tmin(a.t)};
+  return {off:false,f:tmin($('from').value||'00:00'),to:tmin($('to').value||'24:00')};
+}
+const hmFrom=m=>pad(Math.floor(m/60))+':'+pad(m%60);
+function timeOpts(end,sel){let o='';for(let i=0;i<(end?97:96);i++){const v=hmFrom(i*15);o+=`<option${v===sel?' selected':''}>${v}</option>`}return o}
+const AVORDER=[1,2,3,4,5,6,0];
+function avRow(w){
+  const a=AV[w]||null,mode=a?a.m:'d',def=$('from').value+'–'+$('to').value;
+  const name=cap1(new Date(2026,0,5+w).toLocaleDateString(LOC(),{weekday:'long'}));
+  const f=(a&&a.f)||$('from').value,hi=(a&&a.t)||$('to').value;
+  return `<div class="avr" data-w="${w}"><b>${esc(name)}</b><select class="avm" aria-label="${esc(name)}"><option value="d"${mode==='d'?' selected':''}>${esc(t('Igual que Desde/Hasta ({0})',def))}</option><option value="c"${mode==='c'?' selected':''}>${esc(t('Personalizada'))}</option><option value="off"${mode==='off'?' selected':''}>${esc(t('No disponible'))}</option></select><span class="avt"${mode==='c'?'':' hidden'}><select class="avf" aria-label="${esc(t('Desde'))}">${timeOpts(false,f)}</select><span>–</span><select class="avh" aria-label="${esc(t('Hasta'))}">${timeOpts(true,hi)}</select></span></div>`;
+}
+function renderAv(){$('avbody').innerHTML=AVORDER.map(avRow).join('')}
+function avDot(){$('avdot').hidden=!Object.keys(AV).length}
+$('avbody').addEventListener('change',e=>{
+  const row=e.target.closest('.avr');if(!row)return;
+  const w=+row.dataset.w,m=row.querySelector('.avm').value;
+  if(m==='d')delete AV[w];
+  else if(m==='off')AV[w]={m:'off'};
+  else{
+    const sf=row.querySelector('.avf'),sh=row.querySelector('.avh');
+    if(tmin(sf.value)>=tmin(sh.value))sh.value=hmFrom(Math.min(1440,tmin(sf.value)+60));
+    AV[w]={m:'c',f:sf.value,t:sh.value};
+  }
+  row.querySelector('.avt').hidden=m!=='c';
+  render();
+});
+let avOpener=null;
+function openAv(){avOpener=document.activeElement;renderAv();$('avov').hidden=false;$('avclose').focus()}
+function closeAv(){$('avov').hidden=true;if(avOpener&&avOpener.focus)avOpener.focus()}
+$('avreset').onclick=()=>{AV={};renderAv();render()};
+$('avBtn').onclick=openAv;$('avclose').onclick=closeAv;$('avok').onclick=closeAv;
+$('avov').addEventListener('click',e=>{if(e.target===$('avov'))closeAv()});
+
+/* ===== Vista de temporada ===== */
+function seasonWeeks(){return META&&META.w1?Array.from({length:13},(_,i)=>{const a=isoAdd(META.w1,7*i);return {i,a,b:isoAdd(a,6)}}):null}
+function goWeek(i,name){
+  const W=seasonWeeks();if(!W)return;
+  $('day').value=W[i].a;if(name)$('q').value=name;
+  ui.v='T';active=defaultActive();
+  if(name)for(let d=0;d<7;d++){if(racesForDay(dayInfo(d).key).some(r=>r.name===name)){active=d;break}}
+  applyUi();render();sc();
+}
+function drawSeason(){
+  const box=$('season'),W=seasonWeeks();
+  if(!DATA.length||!W){box.innerHTML='<p class="none" style="padding:14px 0">'+esc(t('Carga el calendario para ver la temporada.'))+'</p>';$('shead').textContent='';return}
+  const q=$('q').value.trim().toLowerCase(),today=dayKey(new Date()),w1ms=Date.parse(META.w1+'T00:00:00Z'),WK=7*864e5;
+  const cur=W.find(w=>w.a<=today&&today<=w.b),selI=$('day').selectedIndex,planned=new Map();
+  for(const v of plan.values()){
+    if(v.r.manual)continue;
+    const idx=Math.floor((Date.parse(dayKey(v.t)+'T00:00:00Z')-w1ms)/WK);if(idx<0||idx>12)continue;
+    const a=planned.get(v.r.name)||new Array(13).fill(0);a[idx]++;planned.set(v.r.name,a);
+  }
+  const rows=[];
+  for(const s of EFF){
+    if($('lic').value&&s.l!==$('lic').value)continue;if($('cat').value&&s.c!==$('cat').value)continue;if(ui.fo&&!fav.has(s.n))continue;
+    const cells=new Array(13).fill(null);
+    for(const w of s.w){const idx=Math.floor((Date.parse(w[0]+'T00:00:00Z')-w1ms)/WK);if(idx>=0&&idx<13&&!cells[idx])cells[idx]=w}
+    if(!cells.some(Boolean))continue;
+    if(q&&!(s.n.toLowerCase().includes(q)||s.w.some(w=>w[1].toLowerCase().includes(q))))continue;
+    rows.push({s,cells});
+  }
+  rows.sort((a,b)=>(fav.has(b.s.n)-fav.has(a.s.n))||ORD[a.s.l]-ORD[b.s.l]||a.s.n.localeCompare(b.s.n));
+  $('shead').textContent=t('{0} series',rows.length);
+  let h=`<table class="st"><thead><tr><th class="sn">${esc(t('Serie'))}</th>`+W.map(w=>`<th class="sw${cur&&cur.i===w.i?' cur':''}${w.i===selI?' sel':''}" data-i="${w.i}" title="${esc(t('Ver la semana {0}',w.i+1))}"><b>${esc(t('S{0}',w.i+1))}</b><small>${esc(fmtD(w.a))}</small></th>`).join('')+'</tr></thead><tbody>';
+  if(!rows.length)h+=`<tr><td colspan="14" class="none" style="padding:14px 8px">${esc(t('No hay series con esos filtros.'))}</td></tr>`;
+  for(const {s,cells} of rows){
+    const pl=planned.get(s.n);
+    h+=`<tr><td class="sn">${starHtml(s.n)}<span class="lic ${s.l}" style="background:${col(s.l)}">${esc(s.l)}</span><span class="snn" title="${esc(s.n)}">${esc(s.n)}</span></td>`;
+    h+=cells.map((c,i)=>c?`<td class="sc${pl&&pl[i]?' pl':''}${cur&&cur.i===i?' cur':''}" data-i="${i}" data-n="${esc(s.n)}" title="${esc(c[1]+' · '+(c[3]?'≈':'')+c[2]+' min'+(pl&&pl[i]?' · '+t('En plan: {0}',pl[i]):''))}"><span class="cl">${esc(c[1])}</span>${pl&&pl[i]?`<em>●${pl[i]>1?pl[i]:''}</em>`:''}</td>`:`<td class="sc none" data-i="${i}">·</td>`).join('')+'</tr>';
+  }
+  box.innerHTML=h+'</tbody></table>';
+}
+$('season').addEventListener('click',e=>{
+  const st=e.target.closest('.star');
+  if(st){toggleFav(st.closest('tr').querySelector('.snn').getAttribute('title'));return}
+  const th=e.target.closest('th.sw');if(th){goWeek(+th.dataset.i);return}
+  const td=e.target.closest('td.sc[data-n]');if(td)goWeek(+td.dataset.i,td.dataset.n);
+});
+$('season').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('star')){e.preventDefault();e.target.click()}});
+
+/* ===== Repetir semana ===== */
+function toast(s){const el=$('toast');el.textContent=s;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>{el.hidden=true},5000)}
+function planItemsOfWeek(){const d0=dayInfo(0).d0,d1=dayInfo(6).d1;return [...plan.entries()].filter(([k,v])=>v.t.getTime()>=d0&&v.t.getTime()<d1)}
+function repeatPlan(n,inclManual,replace,apply){
+  const items=planItemsOfWeek(),res={races:0,manual:0,skipped:0,removed:0},adds=[],dels=[],base=$('day').value,cache=new Map();
+  const rfd=k=>{if(!cache.has(k))cache.set(k,racesForDay(k));return cache.get(k)};
+  if(replace)for(let k=1;k<=n;k++){const a=isoAdd(base,7*k),b=isoAdd(base,7*k+6);for(const [kk,v] of plan){const dk=dayKey(v.t);if(dk>=a&&dk<=b){dels.push(kk);res.removed++}}}
+  const have=new Set(replace?[]:plan.keys());
+  for(let k=1;k<=n;k++)for(const [kk,v] of items){
+    if(v.r.manual){
+      if(!inclManual)continue;
+      const nt=new Date(v.t);nt.setDate(nt.getDate()+7*k);
+      if(!replace&&[...plan.values()].some(x=>x.r.manual&&x.r.name===v.r.name&&x.t.getTime()===nt.getTime()))continue;
+      adds.push({m:1,r:v.r,t:nt});res.manual++;
+    }else{
+      const nt=new Date(v.t.getTime()+7*k*864e5);
+      const hit=rfd(dayKey(nt)).find(r=>r.name===v.r.name&&r.starts.some(s=>s.getTime()===nt.getTime()));
+      if(!hit){res.skipped++;continue}
+      const nk=key(hit,nt);if(have.has(nk))continue;have.add(nk);adds.push({r:hit,t:nt,k:nk});res.races++;
+    }
+  }
+  if(apply){dels.forEach(k=>plan.delete(k));for(const a of adds){if(a.m){const id='m'+(++mseq);plan.set(id,{r:{...a.r,uid:id},t:a.t})}else plan.set(a.k,{r:a.r,t:a.t})}}
+  return res;
+}
+const repMax=()=>META&&META.w1?12-$('day').selectedIndex:0;
+const repWeeks=n=>{const i=$('day').selectedIndex;return n==1?t('la semana {0}',i+2):t('las semanas {0}–{1}',i+2,i+1+n)};
+const repWhat=r=>t('Se copiarán {0} y {1} a {2}.',t(r.races==1?'{0} carrera':'{0} carreras',r.races),t(r.manual==1?'{0} bloque personalizado':'{0} bloques personalizados',r.manual),repWeeks(+$('repn').value));
+const repSkip=r=>r.skipped?' '+t(r.skipped==1?'{0} carrera no existe en esas semanas y se omitirá.':'{0} carreras no existen en esas semanas y se omitirán.',r.skipped):'';
+function repPreview(){
+  const r=repeatPlan(+$('repn').value,$('repman').checked,$('reprep').checked,false);
+  let s=repWhat(r)+repSkip(r);
+  if($('reprep').checked&&r.removed)s+=' '+t(r.removed==1?'Se quitará {0} elemento que ya había en esas semanas.':'Se quitarán {0} elementos que ya había en esas semanas.',r.removed);
+  $('reppv').textContent=s;$('repgo').disabled=!(r.races||r.manual);
+}
+let repOpener=null;
+function openRepeat(){
+  const max=repMax();
+  if(!planItemsOfWeek().length){toast(t('No hay nada planificado esta semana para repetir.'));return}
+  if(max<1){toast(t('No quedan semanas posteriores en la temporada.'));return}
+  $('repn').innerHTML=Array.from({length:max},(_,i)=>`<option value="${i+1}">${esc(t(i==0?'{0} semana':'{0} semanas',i+1))}</option>`).join('');
+  $('repn').value=String(Math.min(3,max));$('repman').checked=true;$('repadd').checked=true;
+  $('repintro').textContent=t('Copia lo que tienes planificado en la semana {0} a las semanas siguientes.',$('day').selectedIndex+1);
+  repOpener=document.activeElement;$('repov').hidden=false;repPreview();$('repgo').focus();
+}
+function closeRep(){$('repov').hidden=true;if(repOpener&&repOpener.focus)repOpener.focus()}
+['repn','repman','repadd','reprep'].forEach(id=>$(id).addEventListener('change',repPreview));
+$('repeatBtn').onclick=openRepeat;$('repcancel').onclick=closeRep;$('repclose').onclick=closeRep;
+$('repov').addEventListener('click',e=>{if(e.target===$('repov'))closeRep()});
+$('repgo').onclick=()=>{
+  const n=+$('repn').value,r=repeatPlan(n,$('repman').checked,$('reprep').checked,true);
+  const msg=t('Hecho: {0} y {1} añadidos a {2}.',t(r.races==1?'{0} carrera':'{0} carreras',r.races),t(r.manual==1?'{0} bloque personalizado':'{0} bloques personalizados',r.manual),repWeeks(n))+repSkip(r);
+  closeRep();render();toast(msg);
+};
+
+function otherDaysBlock(q,here){
   if(!q)return null;
   const map=new Map();
   for(let i=0;i<7;i++){
     if(i===active)continue;
-    const di2=dayInfo(i);
+    const di2=dayInfo(i),w2=winFor(di2);if(w2.off)continue;
     for(const r of racesForDay(di2.key)){
       if(here.has(r.name))continue;
-      if(!((!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(r.name+' '+r.track).toLowerCase().includes(q)))continue;
-      const vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to);if(!vis.length)continue;
+      if(!((!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(r.name+' '+r.track).toLowerCase().includes(q)&&(!ui.fo||fav.has(r.name))))continue;
+      const vis=r.starts.filter(t=>mod(t)>=w2.f&&mod(t)<=w2.to);if(!vis.length)continue;
       const e=map.get(r.name)||{r,days:[]};
       if(!e.days.some(d=>d.i===i))e.days.push({i,d:new Date(di2.d0),n:vis.length,first:vis[0]});
       map.set(r.name,e);
@@ -556,14 +765,14 @@ function render(){
   $('actday').textContent=di.label;
   const fs=[$('from').value+'–'+$('to').value,$('lic').value&&t('licencia {0}',$('lic').value),$('cat').value&&$('cat').selectedOptions[0].textContent].filter(Boolean).join(' · ');
   $('tgF').title=t('Filtros')+' · '+fs;const fa=!!($('lic').value||$('cat').value);$('fdot').hidden=!fa;$('resetF').disabled=!(fa||$('q').value.trim());
-  const q=$('q').value.trim().toLowerCase(), f=tmin($('from').value||'00:00'), to=tmin($('to').value||'24:00');
-  let races=racesForDay(k).filter(r=>(!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(!q||(r.name+' '+r.track).toLowerCase().includes(q)));
+  const q=$('q').value.trim().toLowerCase(), win=winFor(di), f=win.f, to=win.to;
+  let races=(win.off?[]:racesForDay(k)).filter(r=>(!$('lic').value||r.lic===$('lic').value)&&(!$('cat').value||r.cat===$('cat').value)&&(!q||(r.name+' '+r.track).toLowerCase().includes(q))&&(!ui.fo||fav.has(r.name)));
   races.forEach(r=>r.vis=r.starts.filter(t=>mod(t)>=f&&mod(t)<=to));
-  races=races.filter(r=>r.vis.length).sort((a,b)=>ORD[a.lic]-ORD[b.lic]||a.name.localeCompare(b.name));
+  races=races.filter(r=>r.vis.length).sort((a,b)=>(fav.has(b.name)-fav.has(a.name))||ORD[a.lic]-ORD[b.lic]||a.name.localeCompare(b.name));
   shown=races;
   const list=$('list'); list.innerHTML='';
   if(!DATA.length) list.innerHTML='<div class="empty">'+esc(t('Aún no hay calendario: coloca SeasonSchedule.pdf junto a este archivo y recarga la página.'))+'</div>';
-  else if(!races.length) list.innerHTML='<div class="empty">'+esc(t('No hay carreras con esos filtros para este día.'))+'</div>';
+  else if(!races.length) list.innerHTML='<div class="empty">'+esc(win.off?t('Has marcado este día como no disponible.'):ui.fo&&!q?t('No tienes series favoritas con estos filtros. Marca la estrella ☆ de una serie para añadirla.'):t('No hay carreras con esos filtros para este día.'))+'</div>';
   $('list').dataset.day=k;
   for(const r of races){
     const el=document.createElement('div'),c=!expanded.has(r.name);
@@ -571,8 +780,9 @@ function render(){
     const ns=[...plan.values()].filter(v=>v.r.uid===r.uid).length;
     const other=[...plan.values()].filter(v=>!v.r.manual&&v.r.name===r.name&&dayKey(v.t)!==k).sort((a,b)=>a.t-b.t);
     const otherTxt=other.map(v=>shortDay(v.t)+' '+hhmm(v.t)).join(', ');
-    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="${esc(t('Arrastra al plan'))}">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span><span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="${esc(t('Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo'))}" aria-label="${esc(t('Confirmar el horario de {0}',r.name))}">⚠</span>`:''}${ns?`<span class="cnt">${esc(t('{0} en plan',ns))}</span>`:other.length?`<span class="cnt amb" title="${esc(t('Ya en tu plan: {0}',otherTxt))}">${esc(t('↻ repetida'))}</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">${esc(t('↻ Esta serie ya está en tu plan: {0}',otherTxt))}</div>`:''}</div>`;
+    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="${esc(t('Arrastra al plan'))}">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span>${starHtml(r.name)}<span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="${esc(t('Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo'))}" aria-label="${esc(t('Confirmar el horario de {0}',r.name))}">⚠</span>`:''}${ns?`<span class="cnt">${esc(t('{0} en plan',ns))}</span>`:other.length?`<span class="cnt amb" title="${esc(t('Ya en tu plan: {0}',otherTxt))}">${esc(t('↻ repetida'))}</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">${esc(t('↻ Esta serie ya está en tu plan: {0}',otherTxt))}</div>`:''}</div>`;
     const hd=el.querySelector('.rh');
+    bindStar(el,r.name);
     const uw=el.querySelector('.unc');
     if(uw){uw.onpointerdown=e=>e.stopPropagation();uw.onclick=e=>{e.stopPropagation();openFix(r.name)};uw.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openFix(r.name)}}}
     hd.onpointerdown=e=>{if(e.button>0)return;if(e.pointerType==='touch'&&!e.target.closest('.grip'))return;startNameDrag(e,r,hd)};
@@ -588,9 +798,11 @@ function render(){
     }
     el.querySelector('.rb').appendChild(box); list.appendChild(el);
   }
-  {const ob=otherDaysBlock(q,f,to,new Set(races.map(r=>r.name)));if(ob)list.appendChild(ob)}
+  {const ob=otherDaysBlock(q,new Set(races.map(r=>r.name)));if(ob)list.appendChild(ob)}
   drawTimeline();
   drawAgenda();
+  if(ui.v==='S')drawSeason();
+  avDot();
   saveState();
 }
 let active=0;
@@ -610,7 +822,9 @@ function drawTimeline(){
   const items=[...plan.entries()].map(([kk,v])=>({kk,...v,...slot(v.r,v.t)})).sort((a,b)=>a.s-b.s);
   const cnt={};items.forEach(i=>{if(!i.r.manual)cnt[i.r.name]=(cnt[i.r.name]||0)+1});
   let nBad=0;items.forEach(it=>{it.bad=items.some(o=>o!==it&&clash(it,o));if(it.bad)nBad++;it.dup=!it.r.manual&&cnt[it.r.name]>1});
-  const fm=tmin($('from').value||'00:00'),tm=tmin($('to').value||'24:00');
+  const wins=[0,1,2,3,4,5,6].map(i=>winFor(dayInfo(i)));
+  let fm=1e9,tm=0;wins.forEach(w=>{if(!w.off){fm=Math.min(fm,w.f);tm=Math.max(tm,w.to)}});
+  if(fm>=tm){fm=tmin($('from').value||'00:00');tm=tmin($('to').value||'24:00')}
   let h0=Math.floor(fm/60),h1=Math.ceil(tm/60);if(h1<=h0){h0=0;h1=24}
   const avail=$('scroll').clientWidth||900;lastW=avail;
   PPH=Math.max(4,(avail-2)/(h1-h0));VIEW={h0,h1};
@@ -624,7 +838,10 @@ function drawTimeline(){
     const nRows=Math.max(rows.length,1)+(showPv?1:0);
     let h='';
     for(let k=h0;k<h1;k++)h+=`<div class="hr" style="left:${(k-h0)*PPH}px">${(k-h0)%ls===0?pad(k)+':00':''}</div>`+(PPH>=56?`<div class="hr half" style="left:${(k-h0)*PPH+PPH/2}px"></div>`:'');
-    if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="Ahora"></div>`;
+    {const w=wins[i],a0=h0*60,a1=h1*60;
+      if(w.off)h+=`<div class="unav" style="left:0;width:${W}px"><span>${esc(t('No disponible'))}</span></div>`;
+      else{if(w.f>a0)h+=`<div class="unav" style="left:0;width:${(w.f/60-h0)*PPH}px"></div>`;if(w.to<a1)h+=`<div class="unav" style="left:${(w.to/60-h0)*PPH}px;width:${(h1-w.to/60)*PPH}px"></div>`}}
+    if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="${esc(t('Ahora'))}"></div>`;
     its.forEach(it=>{
       const w=Math.max((it.e-it.s)/36e5*PPH,16);
       h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${!it.r.manual&&it.e<=nowT?'past':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${esc(it.r.name)}&#10;${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' - '+esc(it.r.track)}">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?`<button class="cp" aria-label="${esc(t('Duplicar bloque'))}" title="${esc(t('Duplicar bloque (Ctrl+D)'))}">⧉</button>`:''}<button class="x" aria-label="${esc(t('Quitar del plan'))}" title="${esc(t('Quitar del plan'))}">×</button></div>`;
@@ -835,14 +1052,16 @@ function applyUi(){
   $('tgF').setAttribute('aria-expanded',ui.f);$('filters').hidden=!ui.f;
   $('tgD').setAttribute('aria-expanded',ui.d);$('datapanel').hidden=!ui.d;
   $('tgM').setAttribute('aria-expanded',ui.m);$('custompanel').hidden=!ui.m;
-  $('viewT').hidden=ui.v!=='T';$('viewA').hidden=ui.v!=='A';
-  $('tabT').setAttribute('aria-selected',ui.v==='T');$('tabA').setAttribute('aria-selected',ui.v==='A');
+  $('viewT').hidden=ui.v!=='T';$('viewA').hidden=ui.v!=='A';$('viewS').hidden=ui.v!=='S';
+  $('tabT').setAttribute('aria-selected',ui.v==='T');$('tabA').setAttribute('aria-selected',ui.v==='A');$('tabS').setAttribute('aria-selected',ui.v==='S');
+  $('favOnly').setAttribute('aria-pressed',ui.fo);
   $('tgS').setAttribute('aria-expanded',ui.s);document.querySelector('main').classList.toggle('nolist',!ui.s);
 }
 const flip=k=>()=>{ui[k]=!ui[k];applyUi();saveState();if(k==='s')drawTimeline()};
 $('tabT').onclick=()=>{ui.v='T';applyUi();saveState();drawTimeline()};
-document.querySelector('.vt').addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const b=ui.v==='T'?$('tabA'):$('tabT');b.click();b.focus()}});
+document.querySelector('.vt').addEventListener('keydown',e=>{if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&e.target.getAttribute('role')==='tab'){const tabs=[$('tabT'),$('tabA'),$('tabS')],i=['T','A','S'].indexOf(ui.v),b=tabs[(i+(e.key==='ArrowRight'?1:2))%3];b.click();b.focus()}});
 $('tabA').onclick=()=>{ui.v='A';applyUi();saveState()};
+$('tabS').onclick=()=>{ui.v='S';applyUi();saveState();drawSeason()};
 $('tgM').onclick=flip('m');$('tgS').onclick=flip('s');$('hideSide').onclick=flip('s');
 $('tgF').onclick=()=>{ui.f=!ui.f;applyUi();saveState()};
 $('tgD').onclick=()=>{ui.d=!ui.d;applyUi();saveState()};
@@ -864,7 +1083,7 @@ function reconcilePlan(){
 const USER='local',SKEY=`iracing-planner/${USER}/state`;
 let storageOK=true;
 function stateObj(){
-  return {v:1,at:dayKey(new Date()),start:$('day').value,active,from:$('from').value,to:$('to').value,lic:$('lic').value,cat:$('cat').value,q:$('q').value,gap:$('gap').value,mseq,expanded:[...expanded],ui:{f:ui.f,d:ui.d,m:ui.m,s:ui.s,v:ui.v},
+  return {v:1,at:dayKey(new Date()),start:$('day').value,active,from:$('from').value,to:$('to').value,lic:$('lic').value,cat:$('cat').value,q:$('q').value,gap:$('gap').value,mseq,expanded:[...expanded],ui:{f:ui.f,d:ui.d,m:ui.m,s:ui.s,v:ui.v,fo:ui.fo},fav:[...fav],avail:AV,
     plan:[...plan.entries()].map(([k,v])=>({k,t:v.t.getTime(),r:{uid:v.r.uid,name:v.r.name,lic:v.r.lic,cat:v.r.cat,track:v.r.track,dur:v.r.dur,est:v.r.est,unc:!!v.r.unc,manual:!!v.r.manual}}))};
 }
 function saveState(){
@@ -876,7 +1095,9 @@ function applyState(s){
   put('day',s.start);put('from',s.from);put('to',s.to);put('lic',s.lic);put('cat',s.cat);put('q',s.q);put('gap',s.gap);
   active=Math.min(6,Math.max(0,+s.active||0));mseq=+s.mseq||0;
   expanded=new Set(s.expanded||[]);
-  if(s.ui){ui.f=!!s.ui.f;ui.d=!!s.ui.d;ui.m=!!s.ui.m;ui.s=s.ui.s!==false;ui.v=s.ui.v==='A'?'A':'T'}
+  if(s.ui){ui.f=!!s.ui.f;ui.d=!!s.ui.d;ui.m=!!s.ui.m;ui.s=s.ui.s!==false;ui.v=s.ui.v==='A'?'A':s.ui.v==='S'?'S':'T';ui.fo=!!s.ui.fo}
+  fav=new Set(Array.isArray(s.fav)?s.fav.filter(x=>typeof x==='string'):[]);
+  AV=s.avail&&typeof s.avail==='object'&&!Array.isArray(s.avail)?s.avail:{};
   plan.clear();(s.plan||[]).forEach(o=>plan.set(o.k,{r:o.r,t:new Date(o.t)}));
 }
 let savedAt='';
@@ -1037,6 +1258,7 @@ $('resetF').onclick=()=>{$('lic').value='';$('cat').value='';$('q').value='';ren
 $('fixbtn').onclick=openFix;$('fixclose').onclick=closeFix;$('fixok').onclick=closeFix;
 $('fixov').addEventListener('click',e=>{if(e.target===$('fixov'))closeFix()});
 document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(!$('avov').hidden){closeAv();return}if(!$('repov').hidden){closeRep();return}}
   if($('fixov').hidden)return;
   if(e.key==='Escape'){closeFix();return}
   if(e.key==='Tab'){
