@@ -158,7 +158,9 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-si
 .st td.pl{background:rgba(152,25,255,.22);font-weight:600}
 .st td.none{color:var(--mute);text-align:center;cursor:default}
 .st td em{font-style:normal;color:var(--ter);margin-left:3px}
-.cl{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.car{color:var(--accent-t);font-weight:600}
+.cc{font-style:normal;color:var(--accent-t);font-weight:600}
+.cl{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .snn{overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:140px;vertical-align:bottom}
 @media(max-width:700px){.st th.sn,.st td.sn{width:140px}.snn{max-width:70px}.st{font-size:10px}}
 @media(max-width:560px){.vt button span{display:none}.vt button{padding:0 12px}}
@@ -425,7 +427,8 @@ function parseMeta(lines,series){
   }
   return {s:+s,y:+y,w1,pv:PV};
 }
-const PV=2;
+const PV=3;
+const splitCars=s=>String(s).split(/,\s+(?=[A-Z\[\('0-9])/).map(x=>x.trim()).filter(Boolean);
 function cleanTitle(t){
   let b=t.replace(/\s*-?\s*20\d\d Season( \d)?( -? ?(Fixed|Open))?$/,'').replace(/^[\s-]+|[\s-]+$/g,'');
   for(const w of ['Fixed','Open']){const re=new RegExp('\\b'+w+'\\b','i');if(re.test(t)&&!re.test(b))b+=' - '+w}
@@ -458,6 +461,9 @@ function parseSchedule(lines){
     const ph=b.head.find(h=>/^(Races?|Every)\b/.test(h))||b.head.find(h=>/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\b.*\bGMT\b/i.test(h));
     let pat=null;
     if(ph) pat=/\b(mon|tue|wed|thu|fri|sat|sun)[a-z]*\b/i.test(ph.replace(/^Races?\s+/i,''))?weekdayPattern(ph):intPattern(ph);
+    const ai=b.head.findIndex(h=>/-->/.test(h));
+    const carTxt=(ai>0?b.head.slice(0,ai):[]).join(' ').replace(/(\w)-\s+(?=[A-Z])/g,'$1-').replace(/\s+/g,' ').trim();
+    const rot=/see race week for cars/i.test(carTxt);
     const weeks=b.weeks.map(w=>{
       const m=w[0].match(/Week (\d+) \((\d{4}-\d\d-\d\d)\)\s+(.*)/); const d=m[2],rest=m[3];
       const tm=(rest+'  ').match(/^(.*?)(?:\s{2,}|\s(?=-?\d+°F)|\s(?=Rain )|\s(?=All dry)|\s(?=Weather))/);
@@ -475,9 +481,14 @@ function parseSchedule(lines){
       }
       let est=0;
       if(mins===null){est=1;mins=laps===null?30:Math.round(laps*(LAPMIN[cat]||1.8))}
+      if(rot){
+        const a2=w.findIndex((l,i)=>i>0&&/^\s*\(\d{4}-\d\d-\d\d \d\d:\d\d/.test(l));
+        const car=w.slice(1,a2>0?a2:1).map(l=>l.trim().split(/\s{3,}/)[0].replace(/\s+(?:-\s+)?(?:Cautions|Qual\b|Rain\b|All dry|Detached|Rolling|Standing|Local|Grid|Min\b|Drive).*$/,'').trim()).filter(Boolean).join(' ').replace(/(\w)-\s+(?=[A-Z])/g,'$1-').replace(/\s+/g,' ').trim();
+        return [d,track,mins,est,car];
+      }
       return [d,track,mins,est];
     });
-    return {n:cleanTitle(b.title),l:lic,c:cat,p:pat,w:weeks,sk:(b.title.match(/\b(20\d\d) Season ([1-4])\b/)||[]).slice(1,3).join('-')};
+    return {n:cleanTitle(b.title),l:lic,c:cat,p:pat,w:weeks,sk:(b.title.match(/\b(20\d\d) Season ([1-4])\b/)||[]).slice(1,3).join('-'),...(rot?{crw:1}:{cr:splitCars(carTxt)})};
   });
 }
 
@@ -491,6 +502,39 @@ const pad=n=>String(n).padStart(2,'0');
 const hhmm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
 const dayKey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ===== Categoría del coche ===== */
+const CAR_RULES=[
+ [/GT3 Cup|911 Cup/i,'Porsche Cup'],[/\bGT3\b|GT3\.R/,'GT3'],[/\bGT4\b/,'GT4'],[/\bTCR\b/,'TCR'],
+ [/\bGTE\b|911 RSR/,'GTE'],[/\bGT1\b/,'GT1'],[/\bGT2\b/,'GT2'],
+ [/Ferrari 499P|Valkyrie/,'Hypercar'],[/\bGTP\b|Porsche 963|BMW M Hybrid|Cadillac V-Series|Acura ARX-06/,'GTP'],
+ [/HPD ARX-01/,'LMP1'],[/Dallara P217/,'LMP2'],[/Ligier JS P3/,'LMP3'],
+ [/NASCAR Cup Series Next Gen/,'NASCAR Next Gen'],[/NASCAR Truck/,'NASCAR Truck'],[/NASCAR O'Reilly/,"NASCAR O'Reilly"],
+ [/^ARCA/,'ARCA'],[/NASCAR Legends/,'NASCAR Legends'],[/^Gen 4/,'Gen 4'],[/Supercars/,'Supercars'],[/Stock Car Brasil/,'Stock Car Brasil'],
+];
+const carCatOf=n=>{for(const [re,l] of CAR_RULES)if(re.test(n))return l;return null};
+function carLabel(names){
+  if(!names||!names.length)return '';
+  if(names.length===1)return names[0];
+  const cats=[],others=[];
+  for(const n of names){const c=carCatOf(n);if(c){if(!cats.includes(c))cats.push(c)}else others.push(n)}
+  const fam=new Map();
+  for(const n of others){const i=n.indexOf(' - ');if(i>0){const p=n.slice(0,i);fam.set(p,(fam.get(p)||0)+1)}}
+  const rest=[];
+  for(const n of others){const i=n.indexOf(' - '),p=i>0?n.slice(0,i):null;if(p&&fam.get(p)>1){if(!cats.includes(p))cats.push(p)}else rest.push(n)}
+  const parts=cats.concat(rest);
+  return parts.length>5?parts.slice(0,4).join(' · ')+' · +'+(parts.length-4):parts.join(' · ');
+}
+let carIdx=new Map();const carCache=new Map();
+function carInfo(name,wk){
+  const key=name+'|'+wk;let c=carCache.get(key);if(c)return c;
+  const s=carIdx.get(name);let names=[];
+  if(s){if(s.crw){const e=s.w.find(x=>x[0]===wk);names=e&&e[4]?splitCars(e[4]):[]}else names=s.cr||[]}
+  c={l:carLabel(names),f:names.join(', ')};carCache.set(key,c);return c;
+}
+const carOf=r=>r.manual?{l:'',f:''}:carInfo(r.name,String(r.uid).split('|')[1]);
+const carSpan=r=>{const c=carOf(r);return c.l?` · <b class="car" title="${esc(c.f)}">${esc(c.l)}</b>`:''};
+const carTail=r=>{const c=carOf(r);return c.l?' · '+c.l:''};
+
 /* ===== Idioma (español por defecto; se recuerda la elección) ===== */
 const LANGKEY='iracing-planner-lang';
 let LANG='es',appReady=false;
@@ -571,7 +615,9 @@ function patToPattern(pt){
   return null;
 }
 function rebuildEff(){
+  carCache.clear();
   EFF=DATA.map(s=>{const p=patToPattern((VAL.series||{})[s.n]||(PATCH.series||{})[s.n]);return p?{...s,p,fix:1}:s});
+  carIdx=new Map(EFF.map(s=>[s.n,s]));
 }
 const nFixed=()=>EFF.filter(s=>s.fix).length,nUnc=()=>EFF.filter(s=>s.p&&s.p.inf&&!s.fix).length;
 function racesForDay(key){
@@ -683,7 +729,7 @@ function drawSeason(){
   for(const {s,cells} of rows){
     const pl=planned.get(s.n);
     h+=`<tr><td class="sn">${starHtml(s.n)}<span class="lic ${s.l}" style="background:${col(s.l)}">${esc(s.l)}</span><span class="snn" title="${esc(s.n)}">${esc(s.n)}</span></td>`;
-    h+=cells.map((c,i)=>c?`<td class="sc${pl&&pl[i]?' pl':''}${cur&&cur.i===i?' cur':''}" data-i="${i}" data-n="${esc(s.n)}" title="${esc(c[1]+' · '+(c[3]?'≈':'')+c[2]+' min'+(pl&&pl[i]?' · '+t('En plan: {0}',pl[i]):''))}"><span class="cl">${esc(c[1])}</span>${pl&&pl[i]?`<em>●${pl[i]>1?pl[i]:''}</em>`:''}</td>`:`<td class="sc none" data-i="${i}">·</td>`).join('')+'</tr>';
+    h+=cells.map((c,i)=>c?`<td class="sc${pl&&pl[i]?' pl':''}${cur&&cur.i===i?' cur':''}" data-i="${i}" data-n="${esc(s.n)}" title="${esc(c[1]+' · '+(c[3]?'≈':'')+c[2]+' min'+(s.crw&&c[4]?' · '+c[4]:'')+(pl&&pl[i]?' · '+t('En plan: {0}',pl[i]):''))}"><span class="cl">${esc(c[1])}${s.crw&&c[4]?`<br><em class="cc">${esc(carLabel(splitCars(c[4])))}</em>`:''}</span>${pl&&pl[i]?`<em>●${pl[i]>1?pl[i]:''}</em>`:''}</td>`:`<td class="sc none" data-i="${i}">·</td>`).join('')+'</tr>';
   }
   box.innerHTML=h+'</tbody></table>';
 }
@@ -769,7 +815,7 @@ function otherDaysBlock(q,here){
   wrap.innerHTML='<div class="oh">'+esc(t('En otros días de esta semana'))+'</div>';
   [...map.values()].sort((a,b)=>ORD[a.r.lic]-ORD[b.r.lic]||a.r.name.localeCompare(b.r.name)).forEach(({r,days})=>{
     const el=document.createElement('div');el.className='race other';
-    el.innerHTML=`<div class="n"><span class="lic ${r.lic}" style="background:${col(r.lic)}">${esc(r.lic)}</span>${esc(r.name)}</div><div class="t">${esc(r.track)}</div>`;
+    el.innerHTML=`<div class="n"><span class="lic ${r.lic}" style="background:${col(r.lic)}">${esc(r.lic)}</span>${esc(r.name)}</div><div class="t">${esc(r.track)}${carSpan(r)}</div>`;
     const box=document.createElement('div');box.className='times';
     days.sort((a,b)=>a.i-b.i).forEach(x=>{const b=document.createElement('button');b.textContent=shortDay(x.d);b.title=t(x.n>1?'Ver {0}: {1} salidas desde las {2}':'Ver {0}: {1} salida desde las {2}',shortDay(x.d),x.n,hhmm(x.first));b.onclick=()=>setActive(x.i);box.appendChild(b)});
     el.appendChild(box);wrap.appendChild(el);
@@ -799,7 +845,7 @@ function render(){
     const ns=[...plan.values()].filter(v=>v.r.uid===r.uid).length;
     const other=[...plan.values()].filter(v=>!v.r.manual&&v.r.name===r.name&&dayKey(v.t)!==k).sort((a,b)=>a.t-b.t);
     const otherTxt=other.map(v=>shortDay(v.t)+' '+hhmm(v.t)).join(', ');
-    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="${esc(t('Arrastra al plan'))}">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span>${starHtml(r.name)}<span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="${esc(t('Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo'))}" aria-label="${esc(t('Confirmar el horario de {0}',r.name))}">⚠</span>`:''}${ns?`<span class="cnt">${esc(t('{0} en plan',ns))}</span>`:other.length?`<span class="cnt amb" title="${esc(t('Ya en tu plan: {0}',otherTxt))}">${esc(t('↻ repetida'))}</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">${esc(t('↻ Esta serie ya está en tu plan: {0}',otherTxt))}</div>`:''}</div>`;
+    el.innerHTML=`<button class="rh" aria-expanded="${!c}"><span class="grip" title="${esc(t('Arrastra al plan'))}">⠿</span><span class="chev">›</span><span class="lic ${r.lic}" style="background:${col(r.lic)}">${r.lic}</span>${starHtml(r.name)}<span class="nm">${esc(r.name)}<small class="trk">${esc(r.track)}${carSpan(r)}</small></span>${r.unc?`<span class="unc" role="button" tabindex="0" title="${esc(t('Horario por confirmar: el PDF no indica a qué hora empieza (se ha supuesto). Pulsa para confirmarlo'))}" aria-label="${esc(t('Confirmar el horario de {0}',r.name))}">⚠</span>`:''}${ns?`<span class="cnt">${esc(t('{0} en plan',ns))}</span>`:other.length?`<span class="cnt amb" title="${esc(t('Ya en tu plan: {0}',otherTxt))}">${esc(t('↻ repetida'))}</span>`:''}</button><div class="rb"><div class="t">${esc(r.track)}${carSpan(r)} · ${r.est?'≈':''}${r.dur-10} min</div>${other.length?`<div class="rep">${esc(t('↻ Esta serie ya está en tu plan: {0}',otherTxt))}</div>`:''}</div>`;
     const hd=el.querySelector('.rh');
     bindStar(el,r.name);
     const uw=el.querySelector('.unc');
@@ -863,7 +909,7 @@ function drawTimeline(){
     if(nowT>=v0&&nowT<v1)h+=`<div class="now" style="left:${px(nowT)}px" title="${esc(t('Ahora'))}"></div>`;
     its.forEach(it=>{
       const w=Math.max((it.e-it.s)/36e5*PPH,16);
-      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${!it.r.manual&&it.e<=nowT?'past':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${esc(it.r.name)}&#10;${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' - '+esc(it.r.track)}">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?`<button class="cp" aria-label="${esc(t('Duplicar bloque'))}" title="${esc(t('Duplicar bloque (Ctrl+D)'))}">⧉</button>`:''}<button class="x" aria-label="${esc(t('Quitar del plan'))}" title="${esc(t('Quitar del plan'))}">×</button></div>`;
+      h+=`<div class="blk ${it.r.lic} ${it.bad?'bad':''} ${it.dup?'dup':''} ${w<70?'nar':''} ${!it.r.manual&&it.e<=nowT?'past':''} ${it.r.manual?'man':''} ${it.kk===flashKey?'flash':''}" tabindex="0" data-k="${it.kk}" data-d="${i}" style="left:${px(it.s)}px;width:${w}px;top:${top+pos.get(it)*rowH}px;background:${col(it.r.lic)}" title="${esc(it.r.name)}&#10;${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' - '+esc(it.r.track)}${carOf(it.r).l?'&#10;'+esc(carOf(it.r).l):''}">${it.dup?'↻ ':''}${esc(it.r.name)}<small>${hhmm(it.t)}–${hhmm(new Date(it.e))}${it.r.manual?'':' · '+esc(it.r.track)}${it.r.unc?' · ⚠':''}</small>${it.r.manual?`<button class="cp" aria-label="${esc(t('Duplicar bloque'))}" title="${esc(t('Duplicar bloque (Ctrl+D)'))}">⧉</button>`:''}<button class="x" aria-label="${esc(t('Quitar del plan'))}" title="${esc(t('Quitar del plan'))}">×</button></div>`;
     });
     if(showPv)h+=`<div class="ghost" style="left:${px(pv.s)}px;width:${(pv.e-pv.s)/36e5*PPH}px;top:${top+(nRows-1)*rowH}px"></div>`;
     const own=dayAll.filter(it=>it.s>=di.d0),hid=own.filter(it=>!(it.e>v0&&it.s<v1)).length,nm=own.filter(x=>x.r.manual).length,nr=own.length-nm,sum=own.length?`${t(nr==1?'{0} carrera':'{0} carreras',nr)}${nm?' + '+t(nm>1?'{0} manuales':'{0} manual',nm):''} · ${hhmm(new Date(own[0].s))}–${hhmm(new Date(Math.max(...own.map(x=>x.e))))}${hid?' · '+t('{0} fuera del rango horario',hid):''}`:t('sin carreras');
@@ -907,7 +953,7 @@ function agendaData(){
   return Array.from({length:7},(_,i)=>{const di=dayInfo(i);return {di,its:all.filter(it=>it.s>=di.d0&&it.s<di.d1)}});
 }
 const endTxt=(it,di)=>hhmm(new Date(it.e))+(dayKey(new Date(it.e))!==di.key?'⁺¹':'');
-const detTxt=it=>it.r.manual?`${t('Bloque personal')} · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} min`;
+const detTxt=it=>it.r.manual?`${t('Bloque personal')} · ${it.r.dur} min`:`${it.r.track}${carTail(it.r)} · ${it.r.est?'≈':''}${it.r.dur-10} min`;
 function drawAgenda(){
   const days=agendaData(),today=dayKey(new Date());let h='',tot=0;
   for(const {di,its} of days){
@@ -947,7 +993,7 @@ function icsText(){
   const items=agendaData().flatMap(d=>d.its),stamp=icsDt(Date.now());
   const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//iracing-planner//ES','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+icsEsc($('ttl').textContent)];
   for(const it of items){
-    const desc=it.r.manual?`${t('Bloque personal')} · ${it.r.dur} min`:`${it.r.track} · ${it.r.est?'≈':''}${it.r.dur-10} ${t('min de carrera')} · ${t('licencia {0}',it.r.lic)}${it.r.unc?' · '+t('Horario por confirmar'):''}`;
+    const desc=it.r.manual?`${t('Bloque personal')} · ${it.r.dur} min`:`${it.r.track}${carTail(it.r)} · ${it.r.est?'≈':''}${it.r.dur-10} ${t('min de carrera')} · ${t('licencia {0}',it.r.lic)}${it.r.unc?' · '+t('Horario por confirmar'):''}`;
     L.push('BEGIN:VEVENT',`UID:iracing-${String(it.r.uid).replace(/[^A-Za-z0-9._-]/g,'')}-${it.s}@planner`,'DTSTAMP:'+stamp,'DTSTART:'+icsDt(it.s),'DTEND:'+icsDt(it.e),'SUMMARY:'+icsEsc(it.r.name),'DESCRIPTION:'+icsEsc(desc),'CATEGORIES:'+(it.r.manual?t('Personal'):'iRacing'),'TRANSP:OPAQUE','END:VEVENT');
   }
   L.push('END:VCALENDAR');
